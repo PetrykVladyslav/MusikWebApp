@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MWPS | {{ playlist.name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_main.css') }}">
+    <style>
+        /* Стили для деталей плейлиста */
+        .playlist-detail {
+            margin-top: 120px;
+            padding: 2rem 5%;
+        }
+
+        .playlist-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .playlist-cover {
+            width: 200px;
+            height: 200px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .playlist-info h1 {
+            font-size: 2.5rem;
+            color: var(--neon-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .playlist-info p {
+            color: #888;
+            font-size: 1.2rem;
+        }
+
+        .tracks-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .track-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .track-info h3 {
+            color: var(--neon-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .track-info p {
+            color: #888;
+        }
+
+        /* Стили для треков при наведении */
+        .track-item:hover {
+            box-shadow: 0 0 30px var(--neon-pink);
+            cursor: pointer; /* Изменение курсора */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">MWPS</div>
+        <div class="nav-links">
+            <a href="/home">Головна</a>
+            <a href="/about">Про нас</a>
+            <a href="#">Соц. мережі</a>
+            <a href="#">Новинки</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="auth-btn">Увійти</button>
+            <button class="auth-btn">Реєстрація</button>
+        </div>
+    </nav>
+
+    <div class="playlist-detail">
+        <div class="playlist-header">
+            <img src="{{ playlist.tracks[0].image if playlist.tracks else 'default_cover.jpg' }}" alt="{{ playlist.name }}" class="playlist-cover">
+            <div class="playlist-info">
+                <h1>{{ playlist.name }}</h1>
+                <p>Треків: {{ playlist.tracks|length }}</p>
+            </div>
+        </div>
+
+        <div class="tracks-list">
+            {% for track in playlist.tracks %}
+            <div class="track-item" data-track-id="{{ track.id }}">
+                <img src="{{ track.image }}" alt="{{ track.title }}">
+                <div class="track-info">
+                    <h3>{{ track.title }}</h3>
+                    <p>{{ track.artist }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- Нижняя панель управления воспроизведением -->
+    <div id="player" class="player">
+        <div class="player-info">
+            <img id="player-track-image" src="" alt="Track Image" class="player-track-image">
+            <div class="player-track-details">
+                <h3 id="player-track-title"></h3>
+                <p id="player-track-artist"></p>
+            </div>
+        </div>
+        <div class="player-controls">
+            <button id="play-pause-btn" class="player-btn" title="Play/Pause">
+                <i class="fas fa-play"></i>
+            </button>
+            <button id="speed-up-btn" class="player-btn" title="Speed Up">
+                <i class="fas fa-forward"></i>
+            </button>
+            <div class="volume-control-container">
+                <i class="fas fa-volume-up"></i> <!-- Иконка динамика -->
+                <input type="range" id="volume-control" min="0" max="1" step="0.01" value="1" title="Громкість">
+            </div>
+            <button id="close-player-btn" class="player-btn" title="Close Player">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <input type="range" id="seek-bar" min="0" max="100" value="0" class="seek-bar">
+    </div>
+
+    <!-- Аудиоплеер -->
+    <audio id="audio-player" src=""></audio>
+
+    <script>
+        const player = document.getElementById("player");
+        const audioPlayer = document.getElementById("audio-player");
+        const playPauseBtn = document.getElementById("play-pause-btn");
+        const speedUpBtn = document.getElementById("speed-up-btn");
+        const closePlayerBtn = document.getElementById("close-player-btn");
+        const seekBar = document.getElementById("seek-bar");
+        let currentTrack = null;
+
+        // Функция для открытия плеера и загрузки трека
+        function playPreview(trackId, trackTitle, trackArtist, trackImage) {
+            fetch(`/get_preview/${trackId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let previewUrl = data.preview_url;
+                    if (previewUrl) {
+                        document.getElementById("audio-player").src = previewUrl;
+                        document.getElementById("player-track-image").src = trackImage;
+                        document.getElementById("player-track-title").textContent = trackTitle;
+                        document.getElementById("player-track-artist").textContent = trackArtist;
+                        document.getElementById("player").classList.add("active");
+                        document.getElementById("audio-player").play();
+
+                        currentTrack = { id: trackId, title: trackTitle, artist: trackArtist, image: trackImage };
+                    } else {
+                        showToast("Цей трек не підтримує прев'ю!");
+                    }
+                })
+                .catch(error => console.error("Ошибка загрузки превью:", error));
+        }
+
+        // Добавляем обработчик клика по трекам
+        document.querySelectorAll(".track-item").forEach(card => {
+            card.addEventListener("click", () => {
+                let trackId = card.dataset.trackId;
+                let trackTitle = card.querySelector("h3").textContent;
+                let trackArtist = card.querySelector("p").textContent;
+                let trackImage = card.querySelector("img").src;
+                playPreview(trackId, trackTitle, trackArtist, trackImage);
+            });
+        });
+
+        // Управление воспроизведением
+        playPauseBtn.addEventListener("click", () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+
+        // Ускорение трека
+        speedUpBtn.addEventListener("click", () => {
+            if (audioPlayer.playbackRate === 1) {
+                audioPlayer.playbackRate = 1.5;
+            } else {
+                audioPlayer.playbackRate = 1;
+            }
+        });
+
+        // Закрытие плеера
+        closePlayerBtn.addEventListener("click", () => {
+            player.classList.remove("active");
+            audioPlayer.pause();
+        });
+
+        // Перемотка трека
+        seekBar.addEventListener("input", () => {
+            const seekTime = (audioPlayer.duration / 100) * seekBar.value;
+            audioPlayer.currentTime = seekTime;
+        });
+
+        // Обновление ползунка при воспроизведении
+        audioPlayer.addEventListener("timeupdate", () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            seekBar.value = progress;
+        });
+
+        const volumeControl = document.getElementById("volume-control");
+
+        // Обработчик изменения громкости
+        volumeControl.addEventListener("input", () => {
+            audioPlayer.volume = volumeControl.value;
+        });
+    </script>
+</body>
+</html>

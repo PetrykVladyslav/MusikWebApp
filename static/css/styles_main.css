@@ -1,0 +1,222 @@
+/* Cyberpunk стили */
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-blue: #00f3ff;
+            --dark-bg: #0a0a0a;
+            --cyber-gradient: linear-gradient(45deg, var(--neon-pink), var(--neon-blue));
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* Навигационная панель */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--neon-pink);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 2rem;
+            background: var(--cyber-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem;
+            transition: 0.3s;
+            font-size: 1.5rem;
+            background: var(--cyber-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: var(--cyber-gradient);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .auth-btn {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--neon-pink);
+            background: transparent;
+            color: #00f3ff;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-btn:hover {
+            background: var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+
+        .section-text {
+            font-size: 2rem;
+            margin: 3rem 5% 1.5rem;
+            padding: 1rem 0;
+            display: inline-block;
+            background: var(--cyber-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+            position: absolute;
+            top: 10%;
+            left: 22.5%;
+        }
+
+/* Стили для нижней панели управления воспроизведением */
+        .player {
+            position: fixed;
+            bottom: -100px; /* Скрываем панель по умолчанию */
+            left: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 2px solid var(--neon-pink);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: bottom 0.3s ease;
+            z-index: 1000;
+        }
+
+        .player.active {
+            bottom: 0; /* Показываем панель */
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .player-track-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid var(--neon-blue);
+        }
+
+        .player-track-details h3 {
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .player-track-details p {
+            color: #888;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .player-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .player-btn {
+            background: var(--cyber-gradient);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .player-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+
+        .seek-bar {
+            width: 200px;
+            margin: 0 1rem;
+            cursor: pointer;
+        }
+
+        /* Стили для ползунка громкости */
+        .volume-control-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            border: 2px solid var(--neon-blue);
+        }
+
+        .volume-control-container i {
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+        }
+
+        #volume-control {
+            width: 100px;
+            cursor: pointer;
+            background: var(--neon-blue);
+            border-radius: 5px;
+            height: 5px;
+            appearance: none; /* Убираем стандартный стиль */
+        }
+
+        #volume-control::-webkit-slider-thumb {
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: var(--neon-pink);
+            border-radius: 50%;
+            cursor: pointer;
+        }
