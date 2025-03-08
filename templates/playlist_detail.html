@@ -73,6 +73,90 @@
             box-shadow: 0 0 30px var(--neon-pink);
             cursor: pointer; /* Изменение курсора */
         }
+
+        /* Кнопка удаления трека */
+        .delete-btn {
+            margin-left: auto; /* Перемещаем кнопку в конец трека */
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 8px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .delete-btn:hover {
+            background: red;
+        }
+
+        .track-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            text-align: center;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            margin: 0 10px;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-buttons button.confirm {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        .modal-buttons button.cancel {
+            background: #888;
+            color: white;
+        }
+
+        /* Toast-уведомления */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ff4d4d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: block;
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -107,10 +191,27 @@
                     <h3>{{ track.title }}</h3>
                     <p>{{ track.artist }}</p>
                 </div>
+                <button class="delete-btn" onclick="showDeleteModal('{{ track.id }}', event)">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
             {% endfor %}
         </div>
     </div>
+
+    <!-- Модальное окно для подтверждения удаления -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <p>Ви впевнені, що хочете видалити цей трек?</p>
+            <div class="modal-buttons">
+                <button class="confirm" onclick="deleteTrack()">Так</button>
+                <button class="cancel" onclick="closeDeleteModal()">Ні</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast-уведомление -->
+    <div id="toast" class="toast"></div>
 
 <!-- Нижняя панель управления воспроизведением -->
     <div id="player" class="player">
@@ -123,10 +224,10 @@
         </div>
         <div class="player-controls">
             <button id="play-pause-btn" class="player-btn" title="Play/Pause">
-                <i class="fas fa-play"></i>
+                <i class="fas fa-pause"></i>
             </button>
             <button id="speed-up-btn" class="player-btn" title="Speed Up">
-                <i class="fas fa-forward"></i>
+                <i class="fas fa-fast-forward"></i> <!-- Новая иконка -->
             </button>
             <div class="volume-control-container">
                 <i class="fas fa-volume-up"></i> <!-- Иконка динамика -->
@@ -228,6 +329,66 @@
         volumeControl.addEventListener("input", () => {
             audioPlayer.volume = volumeControl.value;
         });
+
+        let currentTrackIdToDelete = null;
+
+        // Функция для показа модального окна
+        function showDeleteModal(trackId, event) {
+            event.stopPropagation(); // Останавливаем всплытие события
+            currentTrackIdToDelete = trackId;
+            document.getElementById("deleteModal").style.display = "block";
+        }
+
+        // Функция для закрытия модального окна
+        function closeDeleteModal() {
+            document.getElementById("deleteModal").style.display = "none";
+        }
+
+        // Функция для удаления трека
+        function deleteTrack() {
+            if (currentTrackIdToDelete) {
+                fetch(`/delete_track`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        track_id: currentTrackIdToDelete,
+                        playlist_name: "{{ playlist.name }}"
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Удаляем трек из DOM
+                        const trackElement = document.querySelector(`.track-item[data-track-id="${currentTrackIdToDelete}"]`);
+                        if (trackElement) {
+                            trackElement.remove();
+                        }
+                        closeDeleteModal();
+                        showToast("Трек успішно видалено!");
+                        // Перезагружаем страницу
+                        window.location.reload();
+                    } else {
+                        showToast("Помилка при видаленні треку!");
+                    }
+                })
+                .catch(error => {
+                    console.error("Помилка:", error);
+                    showToast("Помилка при видаленні треку!");
+                });
+            }
+        }
+
+        // Функция для показа toast-уведомления
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
     </script>
 </body>
 </html>

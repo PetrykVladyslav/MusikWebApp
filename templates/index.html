@@ -168,46 +168,6 @@
             z-index: 9999; /* Поднимаем поверх всех элементов */
             pointer-events: none;
         }
-
-        /* Стиль всплывающего уведомления */
-        .toast {
-            background: rgba(255, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            margin-top: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-            animation: fadeIn 1s, fadeOut 0.5s 2.5s forwards;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            opacity: 0;
-            z-index: 10000;
-        }
-
-        /* Кнопка закрытия */
-        .toast .close-toast {
-            margin-left: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
-
-        .toast .close-toast:hover {
-            color: black;
-        }
-
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; display: none; }
-        }
     </style>
 </head>
 <body>
@@ -346,10 +306,10 @@
         </div>
         <div class="player-controls">
             <button id="play-pause-btn" class="player-btn" title="Play/Pause">
-                <i class="fas fa-play"></i>
+                <i class="fas fa-pause"></i>
             </button>
             <button id="speed-up-btn" class="player-btn" title="Speed Up">
-                <i class="fas fa-forward"></i>
+                <i class="fas fa-fast-forward"></i> <!-- Новая иконка -->
             </button>
             <button class="action-btn" title="Додати до плейліста" onclick="openAddToPlaylistModal(currentTrack.id, currentTrack.title, currentTrack.artist, currentTrack.image)">
                 <i class="fas fa-plus"></i>

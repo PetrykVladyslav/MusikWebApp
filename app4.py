@@ -15,7 +15,10 @@ DEEZER_API_URL = "https://api.deezer.com"
 def search_tracks(query):
     """Пошук треків за запитом"""
     url = f"{DEEZER_API_URL}/search?q={query}"
-    response = requests.get(url)
+    params = {
+        "limit": 1000
+    }
+    response = requests.get(url, params=params)
     data = response.json()
     tracks = []
 
@@ -35,7 +38,7 @@ def get_popular_tracks():
         # Отримуємо популярні треки з Deezer (наприклад, чарт)
         url = f"{DEEZER_API_URL}/chart/0/tracks"
         params = {
-            "limit": 100
+            "limit": 1000
         }
         response = requests.get(url, params=params)
         data = response.json()
@@ -131,6 +134,21 @@ def add_to_playlist():
     else:
         flash("Плейліст не знайдено!", "error")
     return redirect(url_for("home"))
+
+
+@app.route("/delete_track", methods=["POST"])
+def delete_track():
+    data = request.get_json()
+    track_id = data.get("track_id")
+    playlist_name = data.get("playlist_name")
+
+    # Находим нужный плейлист и удаляем трек только из него
+    for playlist in playlists:
+        if playlist["name"] == playlist_name:
+            playlist["tracks"] = [t for t in playlist["tracks"] if t["id"] != track_id]
+            return {"success": True}
+
+    return {"success": False}, 404
 
 
 @app.route("/playlist/<int:playlist_id>")

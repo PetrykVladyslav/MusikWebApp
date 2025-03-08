@@ -77,6 +77,46 @@
             box-shadow: 0 0 15px var(--neon-pink);
         }
 
+        /* Стиль всплывающего уведомления */
+        .toast {
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            animation: fadeIn 1s, fadeOut 0.5s 2.5s forwards;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            z-index: 10000;
+        }
+
+        /* Кнопка закрытия */
+        .toast .close-toast {
+            margin-left: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .toast .close-toast:hover {
+            color: black;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; display: none; }
+        }
+
         /* Стили для модального окна */
         .modal {
             display: none;
@@ -163,6 +203,16 @@
         .confirm-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .modal-buttons button.confirm {
+            background: red;
+            color: white;
+        }
+
+        .modal-buttons button.cancel {
+            background: #888;
+            color: white;
         }
 
         /* Выбор плэйлиста */
