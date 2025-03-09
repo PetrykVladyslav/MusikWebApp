@@ -74,7 +74,8 @@ def get_popular_albums():
             albums.append({
                 "title": item["title"],
                 "artist": item["artist"]["name"],
-                "image": item["cover_big"]
+                "image": item["cover_big"],
+                "id": item["id"]  # Добавляем ID альбома
             })
 
         return random.sample(albums, min(10, len(albums)))
@@ -112,7 +113,7 @@ def create_playlist():
         flash("Плейліст успішно створено!", "success")
     else:
         flash("Назва плейліста не може бути порожньою!", "error")
-    return redirect(url_for("home"))
+    return redirect(request.referrer)
 
 # Додавання треку до плейліста
 @app.route("/add_to_playlist", methods=["POST"])
@@ -133,7 +134,7 @@ def add_to_playlist():
         flash("Трек успішно додано до плейліста!", "success")
     else:
         flash("Плейліст не знайдено!", "error")
-    return redirect(url_for("home"))
+    return redirect(request.referrer)
 
 
 @app.route("/delete_track", methods=["POST"])
@@ -159,6 +160,44 @@ def playlist_detail(playlist_id):
         return render_template("playlist_detail.html", playlist=playlist)
     else:
         flash("Плейліст не знайдено!", "error")
+        return redirect(url_for("home"))
+
+
+@app.route("/album/<int:album_id>")
+def album_detail(album_id):
+    """Сторінка з деталями альбома"""
+    try:
+        # Получаем основную информацию об альбоме
+        album_url = f"{DEEZER_API_URL}/album/{album_id}"
+        album_response = requests.get(album_url)
+        album_data = album_response.json()
+
+        if "error" in album_data:
+            flash("Альбом не знайдено!", "error")
+            return redirect(url_for("home"))
+
+        # Получаем треки альбома из основного ответа (без отдельного запроса)
+        tracks = []
+        for item in album_data.get("tracks", {}).get("data", []):
+            tracks.append({
+                "title": item["title"],
+                "artist": item["artist"]["name"],
+                "image": album_data["cover_big"],
+                "id": item["id"],
+                "preview_url": item.get("preview", "")
+            })
+
+        album = {
+            "title": album_data["title"],
+            "artist": album_data["artist"]["name"],
+            "image": album_data.get("cover_big", ""),
+            "tracks": tracks
+        }
+
+        return render_template("album_detail.html", album=album, playlists=playlists)
+    except Exception as e:
+        print(f"Помилка отримання альбому: {str(e)}")
+        flash("Помилка отримання даних альбому", "error")
         return redirect(url_for("home"))
 
 

@@ -250,6 +250,7 @@
             padding: 1rem;
             z-index: 1000;
             width: 200px;
+            transition: opacity 0.3s ease-in-out; /* Плавное появление */
         }
 
         .playlist-dropdown select {
