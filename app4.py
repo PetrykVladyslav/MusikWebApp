@@ -28,7 +28,7 @@ def search_tracks(query):
             "artist": item["artist"]["name"],
             "image": item["album"]["cover_big"],
             "id": item["id"],  # Добавляем ID трека
-            "preview_url": item.get("preview", "")  # Добавляем ссылку на превью
+            "preview_url": item.get("preview", ""),  # Добавляем ссылку на превью
         })
     return tracks
 
@@ -83,6 +83,23 @@ def get_popular_albums():
         print(f"Помилка отримання популярних альбомів: {str(e)}")
         return []
 
+
+def get_all_genres():
+    """Отримує всі жанри з Deezer API."""
+    try:
+        url = f"{DEEZER_API_URL}/genre"
+        response = requests.get(url)
+        data = response.json()
+
+        if "data" in data:
+            return data["data"]  # Повертаємо список жанрів
+        else:
+            print("Помилка: Не вдалося отримати жанри.")
+            return []
+    except Exception as e:
+        print(f"Помилка отримання жанрів: {str(e)}")
+        return []
+
 # Головна сторінка з полем пошуку
 @app.route("/home", methods=["GET", "POST"])
 @app.route("/", methods=["GET", "POST"])
@@ -94,15 +111,19 @@ def home():
     # Отримуємо популярні треки та альбоми
     popular_tracks = get_popular_tracks()
     popular_albums = get_popular_albums()
+    genres = get_all_genres()  # Отримуємо всі жанри
 
-    return render_template("index.html", popular_tracks=popular_tracks, popular_albums=popular_albums, playlists=playlists)
+    return render_template("index.html", popular_tracks=popular_tracks, popular_albums=popular_albums,
+                           playlists=playlists, genres=genres)
 
 # Сторінка з результатами пошуку
 @app.route("/search")
 def search():
     query = request.args.get("query", "")
     results = search_tracks(query) if query else []
-    return render_template("search_results.html", query=query, results=results, playlists=playlists)
+    genres = get_all_genres()  # Отримуємо всі жанри
+    return render_template("search_results.html", query=query, results=results,
+                           playlists=playlists, genres=genres)
 
 # Створення нового плейліста
 @app.route("/create_playlist", methods=["POST"])
@@ -155,9 +176,10 @@ def delete_track():
 @app.route("/playlist/<int:playlist_id>")
 def playlist_detail(playlist_id):
     """Сторінка з деталями плейліста"""
+    genres = get_all_genres()  # Отримуємо всі жанри
     if playlist_id < len(playlists):
         playlist = playlists[playlist_id]
-        return render_template("playlist_detail.html", playlist=playlist)
+        return render_template("playlist_detail.html", playlist=playlist, genres=genres)
     else:
         flash("Плейліст не знайдено!", "error")
         return redirect(url_for("home"))
@@ -166,6 +188,7 @@ def playlist_detail(playlist_id):
 @app.route("/album/<int:album_id>")
 def album_detail(album_id):
     """Сторінка з деталями альбома"""
+    genres = get_all_genres()  # Отримуємо всі жанри
     try:
         # Получаем основную информацию об альбоме
         album_url = f"{DEEZER_API_URL}/album/{album_id}"
@@ -194,7 +217,7 @@ def album_detail(album_id):
             "tracks": tracks
         }
 
-        return render_template("album_detail.html", album=album, playlists=playlists)
+        return render_template("album_detail.html", album=album, playlists=playlists, genres=genres)
     except Exception as e:
         print(f"Помилка отримання альбому: {str(e)}")
         flash("Помилка отримання даних альбому", "error")
@@ -210,6 +233,37 @@ def get_preview(track_id):
 
     preview_url = data.get("preview", "")  # Ссылка на 30-секундный фрагмент
     return {"preview_url": preview_url}
+
+
+@app.route("/genre/<genre_name>")
+def search_by_genre(genre_name):
+    """Пошук треків за жанром"""
+    genres = get_all_genres()  # Отримуємо всі жанри
+    try:
+        # Пошук треків за жанром через Deezer API
+        url = f"{DEEZER_API_URL}/search"
+        params = {
+            "q": f"genre:'{genre_name}'",
+            "limit": 1000
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        tracks = []
+
+        for item in data.get("data", []):
+            tracks.append({
+                "title": item["title"],
+                "artist": item["artist"]["name"],
+                "image": item["album"]["cover_big"],
+                "id": item["id"],
+                "preview_url": item.get("preview", ""),
+            })
+
+        return render_template("search_results.html", query=genre_name, results=tracks, playlists=playlists, genres=genres)
+    except Exception as e:
+        print(f"Помилка пошуку за жанром: {str(e)}")
+        flash("Помилка пошуку за жанром", "error")
+        return redirect(url_for("home"))
 
 
 if __name__ == "__main__":

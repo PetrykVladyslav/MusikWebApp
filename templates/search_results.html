@@ -98,8 +98,15 @@
         <div class="nav-links">
             <a href="{{ url_for('home') }}">Головна</a>
             <a href="#">Про нас</a>
-             <a href="#">Соц. мережі</a>
-            <a href="#">Новинки</a>
+            <a href="#">Соц. мережі</a>
+            <div class="dropdown">
+                <a href="#" class="dropbtn">Жанри</a>
+                <div class="dropdown-content">
+                    {% for genre in genres %}
+                    <a href="{{ url_for('search_by_genre', genre_name=genre.name) }}">{{ genre.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
         <div class="auth-buttons">
             <button class="auth-btn">Увійти</button>
@@ -122,7 +129,6 @@
 
     <div class="search-results-container">
         <h1 class="results-title">Результати пошуку для: {{ query }}</h1>
-
         {% if results %}
         <div class="results-grid">
             {% for track in results %}
