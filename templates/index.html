@@ -186,10 +186,20 @@
                 </div>
             </div>
         </div>
-        <div class="auth-buttons">
-            <button class="auth-btn">Увійти</button>
-            <button class="auth-btn">Реєстрація</button>
-        </div>
+        {% if current_user.is_authenticated %}
+            <div class="user-avatar">
+                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{{ url_for('user_details') }}">Профіль</a>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Вийти</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="auth-buttons">
+                <button class="auth-btn" onclick="window.location.href='{{ url_for('login') }}'">Увійти</button>
+                <button class="auth-btn" onclick="window.location.href='{{ url_for('register') }}'">Реєстрація</button>
+            </div>
+        {% endif %}
     </nav>
     <h2 class="section-text">Найкраща бібліотека музики. Знайди своє!</h2>
 
@@ -205,7 +215,7 @@
         <form action="{{ url_for('create_playlist') }}" method="POST">
 
         <div class="create-playlist-box">
-            <button type="button" class="create-playlist-btn" onclick="openModal()">Створити плейліст</button>
+            <button type="button" class="create-playlist-btn" onclick="handleCreatePlaylist()">Створити плейліст</button>
         </div>
 
         <!-- Всплывающее модальное окно -->
@@ -264,9 +274,9 @@
 
     <h2 class="section-title">Ваші плейлісти</h2>
     <div class="scroll-container">
-        {% for playlist in playlists %}
-        <div class="playlist-card" onclick="window.location.href='{{ url_for('playlist_detail', playlist_id=loop.index0) }}'">
-            <img src="{{ playlist.tracks[0].image if playlist.tracks else 'default_cover.jpg' }}" alt="{{ playlist.name }}" class="playlist-cover">
+        {% for playlist in current_user.playlists %}
+        <div class="playlist-card" onclick="window.location.href='{{ url_for('playlist_detail', playlist_id=playlist.id) }}'">
+            <img src="{{ playlist.tracks[0].image if playlist.tracks else url_for('static', filename='images/default_cover.jpg') }}" alt="{{ playlist.name }}" class="playlist-cover">
             <div class="playlist-info">
                 <h3>{{ playlist.name }}</h3>
                 <p>Треків: {{ playlist.tracks|length }}</p>
@@ -291,7 +301,7 @@
                     <select name="playlist_id" required>
                         <option value="" disabled selected>Виберіть плейліст</option>
                         {% for playlist in playlists %}
-                        <option value="{{ loop.index0 }}">{{ playlist.name }}</option>
+                        <option value="{{ playlist.id }}">{{ playlist.name }}</option>
                         {% endfor %}
                     </select>
                     <button type="submit" class="confirm-btn" >Додати</button>
@@ -334,8 +344,39 @@
     <!-- Аудиоплеер -->
     <audio id="audio-player" src=""></audio>
 
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal2()">&times;</span>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для неавторизованных пользователей -->
+    <div id="authRequiredModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAuthRequiredModal()">&times;</span>
+            <h2>Увійдіть або зареєструйтесь</h2>
+            <p>Щоб створити плейліст або додати трек до плейліста, будь ласка, <a href="{{ url_for('login') }}">увійдіть</a> або <a href="{{ url_for('register') }}">зареєструйтесь</a>.</p>
+        </div>
+    </div>
+
     <script src="/static/js/common.js"></script>
     <script>
+        // Функции для модального окна добавления трека в плейлист
+        function openAddToPlaylistModal(trackId, trackTitle, trackArtist, trackImage) {
+            {% if current_user.is_authenticated %}
+                // Если пользователь авторизован, открываем модальное окно для добавления трека
+                document.getElementById("trackId").value = trackId;
+                document.getElementById("trackTitle").value = trackTitle;
+                document.getElementById("trackArtist").value = trackArtist;
+                document.getElementById("trackImage").value = trackImage;
+                document.getElementById("addToPlaylistModal").style.display = "block";
+            {% else %}
+                // Если пользователь не авторизован, открываем модальное окно с предложением войти или зарегистрироваться
+                document.getElementById("authRequiredModal").style.display = "block";
+            {% endif %}
+        }
+
         function openModal() {
             document.getElementById("playlistModal").style.display = "block";
         }
@@ -344,15 +385,23 @@
             document.getElementById("playlistModal").style.display = "none";
         }
 
+        // Функция для обработки нажатия на кнопку "Создать плейлист"
+        function handleCreatePlaylist() {
+            {% if current_user.is_authenticated %}
+                // Если пользователь авторизован, открываем модальное окно для создания плейлиста
+                openModal();
+            {% else %}
+                // Если пользователь не авторизован, открываем модальное окно с предложением войти или зарегистрироваться
+                openAuthRequiredModal();
+            {% endif %}
+        }
+
         function showToast(message) {
             let toastContainer = document.getElementById("toast-container");
-
             let toast = document.createElement("div");
             toast.classList.add("toast");
             toast.innerHTML = `${message} <span class="close-toast" onclick="this.parentElement.style.display='none'">&times;</span>`;
-
             toastContainer.appendChild(toast);
-
             setTimeout(() => {
                 toast.style.display = "none";
             }, 10000);
@@ -366,29 +415,6 @@
             }
             document.getElementById("hiddenPlaylistName").value = playlistName;
             document.getElementById("createPlaylistForm").submit();
-        }
-
-        // Функции для модального окна добавления трека в плейлист
-        function openAddToPlaylistModal(trackId, trackTitle, trackArtist, trackImage) {
-            document.getElementById("trackId").value = trackId;
-            document.getElementById("trackTitle").value = trackTitle;
-            document.getElementById("trackArtist").value = trackArtist;
-            document.getElementById("trackImage").value = trackImage;
-            document.getElementById("addToPlaylistModal").style.display = "block";
-        }
-
-        function togglePlaylistDropdown() {
-            const dropdown = document.getElementById("playlistDropdown");
-            if (dropdown.style.display === "block") {
-                dropdown.style.display = "none";
-            } else {
-                dropdown.style.display = "block";
-            }
-        }
-
-        function closeAddToPlaylistModal() {
-            document.getElementById("addToPlaylistModal").style.display = "none";
-            document.getElementById("playlistDropdown").style.display = "none"; // Закрываем выпадающий список при закрытии модального окна
         }
 
         const player = document.getElementById("player");
@@ -483,6 +509,38 @@
             audioPlayer.volume = volumeControl.value;
             savePlayerState(); // Сохраняем состояние
         });
+
+        // Функция для отображения модального окна с сообщением об ошибке
+        function showErrorModal(message) {
+            document.getElementById("errorMessage").innerText = message;
+            modal.style.display = "block";
+        }
+
+        // Функция для очистки сообщений flash
+        function clearFlashMessages() {
+            fetch('/clear_flash_messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => {
+                if (response.status === 204) {
+                    console.log("Flash messages cleared successfully.");
+                }
+            });
+        }
+
+        // Проверяем, есть ли сообщения об ошибках от Flask
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' or category == 'success' or category == 'error_reg' or category == 'success_reg'%}
+                        showErrorModal("{{ message }}");
+                        clearFlashMessages();  // Очищаем сообщения после отображения
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
     </script>
 </body>
 </html>

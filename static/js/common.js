@@ -1,3 +1,27 @@
+function togglePlaylistDropdown() {
+    const dropdown = document.getElementById("playlistDropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+}
+
+function closeAddToPlaylistModal() {
+    document.getElementById("addToPlaylistModal").style.display = "none";
+    document.getElementById("playlistDropdown").style.display = "none"; // Закрываем выпадающий список при закрытии модального окна
+}
+
+document.querySelectorAll(".flash").forEach(flash => {
+    setTimeout(() => {
+        flash.remove();
+    }, 3000);
+
+    flash.addEventListener("click", () => {
+        flash.remove();
+    });
+});
+
 // Функция для сохранения состояния плеера в localStorage
 function savePlayerState() {
     const playerState = {
@@ -61,3 +85,85 @@ function restorePlayerState() {
 
 // Восстанавливаем состояние плеера при загрузке страницы
 window.addEventListener("load", restorePlayerState);
+
+// Функція для перегляду пароля
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.querySelector('.toggle-password');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
+//Випадаюче вікно
+function toggleDropdown() {
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+}
+
+// Закриваємо випадаюче меню, якщо клікнули поза ним
+window.onclick = function(event) {
+    if (!event.target.matches('.user-avatar img')) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let i = 0; i < dropdowns.length; i++) {
+            const openDropdown = dropdowns[i];
+            if (openDropdown.style.display === "block") {
+                openDropdown.style.display = "none";
+            }
+        }
+    }
+}
+
+// Получаем модальное окно
+var modal = document.getElementById("errorModal");
+
+// Когда пользователь кликает вне модального окна, закрываем его
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+//Функции с модальным окном
+function closeModal2() {
+    document.getElementById("errorModal").style.display = "none";
+}
+// Функция для отображения модального окна с сообщением об ошибке
+function showErrorModal(message) {
+    document.getElementById("errorMessage").innerText = message;
+    modal.style.display = "block";
+}
+
+// Функция для очистки сообщений flash
+function clearFlashMessages() {
+    fetch('/clear_flash_messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }).then(response => {
+        if (response.status === 204) {
+            console.log("Flash messages cleared successfully.");
+        }
+    });
+}
+
+// Функция для открытия модального окна с предложением войти или зарегистрироваться
+function openAuthRequiredModal() {
+    document.getElementById("authRequiredModal").style.display = "block";
+}
+
+// Функция для закрытия модального окна с предложением войти или зарегистрироваться
+function closeAuthRequiredModal() {
+    document.getElementById("authRequiredModal").style.display = "none";
+}

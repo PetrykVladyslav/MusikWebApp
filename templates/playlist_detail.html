@@ -6,6 +6,7 @@
     <title>MWPS | {{ playlist.name }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_sec.css') }}">
     <style>
         /* Стили для деталей плейлиста */
         .playlist-detail {
@@ -99,18 +100,24 @@
         .modal {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: -10%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Затемнение фона */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
             background: #1e1e1e;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-
-        .modal-content {
             text-align: center;
+            position: relative; /* Позиционируем содержимое модального окна */
+            z-index: 1001; /* Поднимаем содержимое модального окна над затемненным фоном */
         }
 
         .modal-buttons {
@@ -175,10 +182,20 @@
                 </div>
             </div>
         </div>
-        <div class="auth-buttons">
-            <button class="auth-btn">Увійти</button>
-            <button class="auth-btn">Реєстрація</button>
-        </div>
+        {% if current_user.is_authenticated %}
+            <div class="user-avatar">
+                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{{ url_for('user_details') }}">Профіль</a>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Вийти</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="auth-buttons">
+                <button class="auth-btn" onclick="window.location.href='{{ url_for('login') }}'">Увійти</button>
+                <button class="auth-btn" onclick="window.location.href='{{ url_for('register') }}'">Реєстрація</button>
+            </div>
+        {% endif %}
     </nav>
 
     <div class="playlist-detail">
@@ -192,7 +209,7 @@
 
         <div class="tracks-list">
             {% for track in playlist.tracks %}
-            <div class="track-item" data-track-id="{{ track.id }}">
+            <div class="track-item" data-track-id="{{ track.deezer_id }}">
                 <img src="{{ track.image }}" alt="{{ track.title }}">
                 <div class="track-info">
                     <h3>{{ track.title }}</h3>
@@ -220,7 +237,7 @@
     <!-- Toast-уведомление -->
     <div id="toast" class="toast"></div>
 
-<!-- Нижняя панель управления воспроизведением -->
+    <!-- Нижняя панель управления воспроизведением -->
     <div id="player" class="player">
         <div class="player-info">
             <img id="player-track-image" src="" alt="Track Image" class="player-track-image">
@@ -351,7 +368,7 @@
         function showDeleteModal(trackId, event) {
             event.stopPropagation(); // Останавливаем всплытие события
             currentTrackIdToDelete = trackId;
-            document.getElementById("deleteModal").style.display = "block";
+            document.getElementById("deleteModal").style.display = "flex";
         }
 
         // Функция для закрытия модального окна
@@ -369,7 +386,7 @@
                     },
                     body: JSON.stringify({
                         track_id: currentTrackIdToDelete,
-                        playlist_name: "{{ playlist.name }}"
+                        playlist_id: "{{ playlist.id }}"
                     }),
                 })
                 .then(response => response.json())

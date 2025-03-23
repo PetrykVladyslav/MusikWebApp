@@ -108,10 +108,20 @@
                 </div>
             </div>
         </div>
-        <div class="auth-buttons">
-            <button class="auth-btn">Увійти</button>
-            <button class="auth-btn">Реєстрація</button>
-        </div>
+        {% if current_user.is_authenticated %}
+            <div class="user-avatar">
+                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{{ url_for('user_details') }}">Профіль</a>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Вийти</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="auth-buttons">
+                <button class="auth-btn" onclick="window.location.href='{{ url_for('login') }}'">Увійти</button>
+                <button class="auth-btn" onclick="window.location.href='{{ url_for('register') }}'">Реєстрація</button>
+            </div>
+        {% endif %}
     </nav>
 
     <h2 class="section-text">Найкраща бібліотека музики. Знайди своє!</h2>
@@ -170,7 +180,7 @@
                     <select name="playlist_id" required>
                         <option value="" disabled selected>Виберіть плейліст</option>
                         {% for playlist in playlists %}
-                        <option value="{{ loop.index0 }}">{{ playlist.name }}</option>
+                        <option value="{{ playlist.id }}">{{ playlist.name }}</option>
                         {% endfor %}
                     </select>
                     <button type="submit" class="confirm-btn" >Додати</button>
@@ -213,29 +223,40 @@
     <!-- Аудиоплеер -->
     <audio id="audio-player" src=""></audio>
 
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Модальное окно для неавторизованных пользователей -->
+    <div id="authRequiredModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAuthRequiredModal()">&times;</span>
+            <h2>Увійдіть або зареєструйтесь</h2>
+            <p>Щоб створити плейліст або додати трек до плейліста, будь ласка, <a href="{{ url_for('login') }}">увійдіть</a> або <a href="{{ url_for('register') }}">зареєструйтесь</a>.</p>
+        </div>
+    </div>
+
     <script src="/static/js/common.js"></script>
     <script>
         // Функции для модального окна добавления трека в плейлист
         function openAddToPlaylistModal(trackId, trackTitle, trackArtist, trackImage) {
-            document.getElementById("trackId").value = trackId;
-            document.getElementById("trackTitle").value = trackTitle;
-            document.getElementById("trackArtist").value = trackArtist;
-            document.getElementById("trackImage").value = trackImage;
-            document.getElementById("addToPlaylistModal").style.display = "block";
-        }
-
-        function togglePlaylistDropdown() {
-            const dropdown = document.getElementById("playlistDropdown");
-            if (dropdown.style.display === "block") {
-                dropdown.style.display = "none";
-            } else {
-                dropdown.style.display = "block";
-            }
-        }
-
-        function closeAddToPlaylistModal() {
-            document.getElementById("addToPlaylistModal").style.display = "none";
-            document.getElementById("playlistDropdown").style.display = "none"; // Закрываем выпадающий список при закрытии модального окна
+            {% if current_user.is_authenticated %}
+                // Если пользователь авторизован, открываем модальное окно для добавления трека
+                document.getElementById("trackId").value = trackId;
+                document.getElementById("trackTitle").value = trackTitle;
+                document.getElementById("trackArtist").value = trackArtist;
+                document.getElementById("trackImage").value = trackImage;
+                document.getElementById("addToPlaylistModal").style.display = "block";
+            {% else %}
+                // Если пользователь не авторизован, открываем модальное окно с предложением войти или зарегистрироваться
+                document.getElementById("authRequiredModal").style.display = "block";
+            {% endif %}
         }
 
         const player = document.getElementById("player");

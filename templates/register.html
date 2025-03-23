@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MWPS | Реєстрація</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_sec.css') }}">
+    <style>
+
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">MWPS</div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Головна</a>
+            <a href="#">Про нас</a>
+            <a href="#">Соц. мережі</a>
+            <div class="dropdown">
+                <a href="#" class="dropbtn">Жанри</a>
+                <div class="dropdown-content">
+                    {% for genre in genres %}
+                    <a href="{{ url_for('search_by_genre', genre_name=genre.name) }}">{{ genre.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="auth-buttons">
+            <button class="auth-btn" onclick="window.location.href='{{ url_for('login') }}'">Увійти</button>
+            <button class="auth-btn" onclick="window.location.href='{{ url_for('register') }}'">Реєстрація</button>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-form">
+            <h2>Реєстрація</h2>
+            <form method="POST" action="{{ url_for('register') }}">
+                <input type="text" name="username" placeholder="Нікнейм (не обов'язково)">
+                <input type="email" name="email" placeholder="Електронна пошта" required>
+                <div class="password-container">
+                    <input type="password" name="password" id="password" placeholder="Пароль" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility()"></i>
+                </div>
+                <button type="submit">Зареєструватися</button>
+            </form>
+            <p>Вже маєте акаунт? <a href="{{ url_for('login') }}">Увійти</a></p>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal" style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal2()">&times;</span>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="/static/js/common.js"></script>
+<script>
+        // Проверяем, есть ли сообщения об ошибках от Flask
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error_reg' or category == 'success_reg' %}
+                        showErrorModal("{{ message }}");
+                        clearFlashMessages();  // Очищаем сообщения после отображения
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MWPS | Вхід</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_sec.css') }}">
+    <style>
+
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">MWPS</div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Головна</a>
+            <a href="#">Про нас</a>
+            <a href="#">Соц. мережі</a>
+            <div class="dropdown">
+                <a href="#" class="dropbtn">Жанри</a>
+                <div class="dropdown-content">
+                    {% for genre in genres %}
+                    <a href="{{ url_for('search_by_genre', genre_name=genre.name) }}">{{ genre.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="auth-buttons">
+            <button class="auth-btn" onclick="window.location.href='{{ url_for('login') }}'">Увійти</button>
+            <button class="auth-btn" onclick="window.location.href='{{ url_for('register') }}'">Реєстрація</button>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-form">
+            <h2>Вхід</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="email" name="email" placeholder="Електронна пошта" required>
+                <div class="password-container">
+                    <input type="password" name="password" id="password" placeholder="Пароль" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility()"></i>
+                </div>
+                <label class="remember-me">
+                    <input type="checkbox" id="remember-checkbox">
+                    <span>Запам'ятати мене</span>
+                </label>
+                <button type="submit">Увійти</button>
+            </form>
+            <p>Ще не маєте акаунта? <a href="{{ url_for('register') }}">Зареєструватися</a></p>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal" style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal2()">&times;</span>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="/static/js/common.js"></script>
+    <script>
+        //Функция, которая сохраняет данные при входе и автоматически заполняет их при следующем посещении
+        document.addEventListener("DOMContentLoaded", function () {
+            let savedEmail = localStorage.getItem("savedEmail");
+            let savedPassword = localStorage.getItem("savedPassword");
+            let rememberCheckbox = document.getElementById("remember-checkbox");
+
+            if (savedEmail && savedPassword) {
+                document.querySelector("input[name='email']").value = savedEmail;
+                document.querySelector("input[name='password']").value = savedPassword;
+                rememberCheckbox.checked = true;
+            }
+
+            document.querySelector("form").addEventListener("submit", function () {
+                if (rememberCheckbox.checked) {
+                    localStorage.setItem("savedEmail", document.querySelector("input[name='email']").value);
+                    localStorage.setItem("savedPassword", document.querySelector("input[name='password']").value);
+                } else {
+                    localStorage.removeItem("savedEmail");
+                    localStorage.removeItem("savedPassword");
+                }
+            });
+        });
+
+        // Проверяем, есть ли сообщения об ошибках от Flask
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' or category == 'success' %}
+                        showErrorModal("{{ message }}");
+                        clearFlashMessages();  // Очищаем сообщения после отображения
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </script>
+</body>
+</html>
