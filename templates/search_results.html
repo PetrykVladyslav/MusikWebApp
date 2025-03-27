@@ -90,6 +90,20 @@
             transform: scale(1.1);
             box-shadow: 0 0 15px var(--neon-pink);
         }
+
+        .item-type {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: rgba(0, 243, 255, 0.2);
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+            margin-top: 0.5rem;
+        }
+
+        .result-card[onclick] {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -139,23 +153,33 @@
 
     <div class="search-results-container">
         <h1 class="results-title">Результати пошуку для: {{ query }}</h1>
+
         {% if results %}
         <div class="results-grid">
-            {% for track in results %}
-            <div class="result-card" data-track-id="{{ track.id }}">
-                <img src="{{ track.image }}" alt="{{ track.title }}" class="result-image">
+            {% for item in results %}
+        <div class="result-card"
+             {% if item.type == 'track' %}data-track-id="{{ item.id }}"{% endif %}
+             {% if item.type == 'album' %}onclick="window.location.href='{{ url_for('album_detail', album_id=item.id) }}'"{% endif %}>
+            <img src="{{ item.image }}" alt="{{ item.title }}" class="result-image">
                 <div class="result-info">
-                    <h3>{{ track.title }}</h3>
-                    <p>{{ track.artist }}</p>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.artist }}</p>
+                    <span class="item-type">
+                        {{ "Альбом" if item.type == 'album' else "Трек" }}
+                        {% if item.type == 'album' and item.tracks_count %} • {{ item.tracks_count }} треків{% endif %}
+                    </span>
                 </div>
+
+                {% if item.type == 'track' %}
                 <div class="track-actions">
-                    <button class="action-btn" title="Додати до плейліста" onclick="event.stopPropagation(); openAddToPlaylistModal('{{ track.id }}', '{{ track.title }}', '{{ track.artist }}', '{{ track.image }}')">
+                    <button class="action-btn" title="Додати до плейліста" onclick="event.stopPropagation(); openAddToPlaylistModal('{{ item.id }}', '{{ item.title }}', '{{ item.artist }}', '{{ item.image }}')">
                         <i class="fas fa-plus"></i>
                     </button>
                     <button class="action-btn" title="Завантажити">
                         <i class="fas fa-download"></i>
                     </button>
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -236,7 +260,7 @@
     <!-- Модальное окно для неавторизованных пользователей -->
     <div id="authRequiredModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeAuthRequiredModal()">&times;</span>
+            <span class="close" onclick="closeModal('authRequiredModal')">&times;</span>
             <h2>Увійдіть або зареєструйтесь</h2>
             <p>Щоб створити плейліст або додати трек до плейліста, будь ласка, <a href="{{ url_for('login') }}">увійдіть</a> або <a href="{{ url_for('register') }}">зареєструйтесь</a>.</p>
         </div>

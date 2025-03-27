@@ -202,8 +202,14 @@
         <div class="playlist-header">
             <img src="{{ playlist.tracks[0].image if playlist.tracks else 'default_cover.jpg' }}" alt="{{ playlist.name }}" class="playlist-cover">
             <div class="playlist-info">
-                <h1>{{ playlist.name }}</h1>
+                <div class="playlist-name-container">
+                    <h1 id="playlist-name">{{ playlist.name }}</h1>
+                    <i class="fas fa-edit edit-icon" onclick="openModal('renameModal')"></i>
+                </div>
                 <p>Треків: {{ playlist.tracks|length }}</p>
+                <button class="delete-playlist-btn" onclick="openModal('deletePlaylistModal')">
+                    <i class="fas fa-trash"></i> Видалити плейліст
+                </button>
             </div>
         </div>
 
@@ -229,7 +235,30 @@
             <p>Ви впевнені, що хочете видалити цей трек?</p>
             <div class="modal-buttons">
                 <button class="confirm" onclick="deleteTrack()">Так</button>
-                <button class="cancel" onclick="closeDeleteModal()">Ні</button>
+                <button class="cancel" onclick="closeModal('deleteModal')">Ні</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно для зміни назви -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('renameModal')">&times;</span>
+            <h2>Змінити назву плейліста</h2>
+            <input type="text" id="newPlaylistName" placeholder="Нова назва" value="{{ playlist.name }}">
+            <button onclick="updatePlaylistName()">Зберегти</button>
+        </div>
+    </div>
+
+    <!-- Модальне вікно для підтвердження видалення -->
+    <div id="deletePlaylistModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deletePlaylistModal')">&times;</span>
+            <h2>Видалити плейліст?</h2>
+            <p>Ви впевнені, що хочете видалити плейліст "{{ playlist.name }}"? Цю дію неможливо скасувати.</p>
+            <div class="modal-buttons">
+                <button class="confirm" onclick="deletePlaylist()">Видалити</button>
+                <button class="cancel" onclick="closeModal('deletePlaylistModal')">Скасувати</button>
             </div>
         </div>
     </div>
@@ -371,11 +400,6 @@
             document.getElementById("deleteModal").style.display = "flex";
         }
 
-        // Функция для закрытия модального окна
-        function closeDeleteModal() {
-            document.getElementById("deleteModal").style.display = "none";
-        }
-
         // Функция для удаления трека
         function deleteTrack() {
             if (currentTrackIdToDelete) {
@@ -397,7 +421,7 @@
                         if (trackElement) {
                             trackElement.remove();
                         }
-                        closeDeleteModal();
+                        closeModal('deleteModal');
                         showToast("Трек успішно видалено!");
                         // Перезагружаем страницу
                         window.location.reload();
@@ -420,6 +444,58 @@
             setTimeout(() => {
                 toast.classList.remove("show");
             }, 3000);
+        }
+
+         // Оновлення назви плейліста
+        function updatePlaylistName() {
+            const newName = document.getElementById("newPlaylistName").value.trim();
+            if (!newName) {
+                showToast("Назва плейліста не може бути порожньою!");
+                return;
+            }
+
+            fetch("/update_playlist_name", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    playlist_id: "{{ playlist.id }}",
+                    new_name: newName
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById("playlist-name").textContent = newName;
+                        closeModal('renameModal');
+                        showToast("Назву плейліста оновлено!");
+                    } else {
+                        showToast("Помилка: " + (data.error || "Не вдалося оновити назву"));
+                    }
+                });
+        }
+
+        // Видалення плейліста
+        function deletePlaylist() {
+            fetch("/delete_playlist", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    playlist_id: "{{ playlist.id }}"
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = "{{ url_for('home') }}";
+                    } else {
+                        showToast("Помилка: " + (data.error || "Не вдалося видалити плейліст"));
+                         closeModal('deletePlaylistModal');
+                    }
+                });
         }
     </script>
 </body>

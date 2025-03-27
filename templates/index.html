@@ -168,6 +168,31 @@
             z-index: 9999; /* Поднимаем поверх всех элементов */
             pointer-events: none;
         }
+
+        .playlist-actions {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .playlist-actions .action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .playlist-actions .action-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
     </style>
 </head>
 <body>
@@ -223,7 +248,7 @@
 
         <div id="playlistModal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
+                <span class="close" onclick="closeModal('playlistModal')">&times;</span>
                 <h2>Введіть назву плейліста</h2>
                 <input type="text" id="playlistNameInput" placeholder="Назва плейліста">
                 <button class="confirm-btn" onclick="submitPlaylist()">Створити</button>
@@ -280,6 +305,14 @@
             <div class="playlist-info">
                 <h3>{{ playlist.name }}</h3>
                 <p>Треків: {{ playlist.tracks|length }}</p>
+            </div>
+            <div class="playlist-actions">
+                <div class="playlist-name-container">
+                    <i class="fas fa-edit action-btn" onclick="event.stopPropagation(); openRenameModal('{{ playlist.id }}', '{{ playlist.name }}')"></i>
+                </div>
+                <button class="action-btn" onclick="event.stopPropagation(); openDeletePlaylistModal('{{ playlist.id }}')">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>
         {% endfor %}
@@ -346,7 +379,7 @@
 
     <div id="errorModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal2()">&times;</span>
+            <span class="close" onclick="closeModal('errorModal')">&times;</span>
             <p id="errorMessage"></p>
         </div>
     </div>
@@ -354,9 +387,32 @@
     <!-- Модальное окно для неавторизованных пользователей -->
     <div id="authRequiredModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeAuthRequiredModal()">&times;</span>
+            <span class="close" onclick="closeModal('authRequiredModal')">&times;</span>
             <h2>Увійдіть або зареєструйтесь</h2>
             <p>Щоб створити плейліст або додати трек до плейліста, будь ласка, <a href="{{ url_for('login') }}">увійдіть</a> або <a href="{{ url_for('register') }}">зареєструйтесь</a>.</p>
+        </div>
+    </div>
+
+    <!-- Модальне вікно для зміни назви -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('renameModal')">&times;</span>
+            <h2>Змінити назву плейліста</h2>
+            <input type="text" id="newPlaylistName" placeholder="Нова назва">
+            <button onclick="updatePlaylistName()">Зберегти</button>
+        </div>
+    </div>
+
+    <!-- Модальне вікно для підтвердження видалення -->
+    <div id="deletePlaylistModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deletePlaylistModal')">&times;</span>
+            <h2>Видалити плейліст?</h2>
+            <p>Ви впевнені, що хочете видалити цей плейліст? Цю дію неможливо скасувати.</p>
+            <div class="modal-buttons">
+                <button class="confirm" onclick="deletePlaylist()">Видалити</button>
+                <button class="cancel" onclick="closeModal('deletePlaylistModal')">Скасувати</button>
+            </div>
         </div>
     </div>
 
@@ -377,22 +433,14 @@
             {% endif %}
         }
 
-        function openModal() {
-            document.getElementById("playlistModal").style.display = "block";
-        }
-
-        function closeModal() {
-            document.getElementById("playlistModal").style.display = "none";
-        }
-
         // Функция для обработки нажатия на кнопку "Создать плейлист"
         function handleCreatePlaylist() {
             {% if current_user.is_authenticated %}
                 // Если пользователь авторизован, открываем модальное окно для создания плейлиста
-                openModal();
+                openModal('playlistModal');
             {% else %}
                 // Если пользователь не авторизован, открываем модальное окно с предложением войти или зарегистрироваться
-                openAuthRequiredModal();
+                openModal('authRequiredModal');
             {% endif %}
         }
 
@@ -509,6 +557,72 @@
             audioPlayer.volume = volumeControl.value;
             savePlayerState(); // Сохраняем состояние
         });
+
+        let currentPlaylistId = null;
+
+        // Функції для роботи з модальними вікнами
+        function openRenameModal(playlistId, currentName) {
+            currentPlaylistId = playlistId;
+            document.getElementById('newPlaylistName').value = currentName;
+            document.getElementById('renameModal').style.display = 'flex';
+        }
+
+        function openDeletePlaylistModal(playlistId) {
+            currentPlaylistId = playlistId;
+            document.getElementById('deletePlaylistModal').style.display = 'flex';
+        }
+
+         // Оновлення назви плейліста
+        function updatePlaylistName() {
+            const newName = document.getElementById("newPlaylistName").value.trim();
+            if (!newName) {
+                showToast("Назва плейліста не може бути порожньою!");
+                return;
+            }
+
+            fetch("/update_playlist_name", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    playlist_id: currentPlaylistId,
+                    new_name: newName
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast("Назву плейліста оновлено!");
+                        window.location.reload();
+                    } else {
+                        showToast("Помилка: " + (data.error || "Не вдалося оновити назву"));
+                    }
+                    closeModal('renameModal');
+                });
+        }
+
+        // Видалення плейліста
+        function deletePlaylist() {
+            fetch("/delete_playlist", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                     playlist_id: currentPlaylistId
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = "{{ url_for('home') }}";
+                    } else {
+                        showToast("Помилка: " + (data.error || "Не вдалося видалити плейліст"));
+                         closeModal('deletePlaylistModal');
+                    }
+                });
+        }
 
         // Функция для отображения модального окна с сообщением об ошибке
         function showErrorModal(message) {

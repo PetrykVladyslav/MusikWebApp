@@ -45,6 +45,7 @@ def search_tracks(query):
 
     for item in data.get("data", []):
         tracks.append({
+            "type": "track",  # Додаємо тип
             "title": item["title"],
             "artist": item["artist"]["name"],
             "image": item["album"]["cover_big"],
@@ -52,6 +53,45 @@ def search_tracks(query):
             "preview_url": item.get("preview", ""),  # Добавляем ссылку на превью
         })
     return tracks
+
+
+def search_albums(query):
+    """Пошук альбомів за запитом з додатковою перевіркою"""
+    try:
+        url = f"{DEEZER_API_URL}/search/album?q={query}"
+        params = {"limit": 1000}
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        albums = []
+        seen_albums = set()  # Для уникнення дублікатів
+
+        for item in data.get("data", []):
+            # Додаткова перевірка, що це дійсно альбом
+            if not item.get("title") or not item.get("artist") or not item.get("cover_big"):
+                continue
+
+            # Унікальний ідентифікатор альбому (artist + title)
+            album_key = f"{item['artist']['name']}-{item['title']}"
+
+            if album_key not in seen_albums:
+                albums.append({
+                    "type": "album",
+                    "title": item["title"],
+                    "artist": item["artist"]["name"],
+                    "image": item["cover_big"],
+                    "id": item["id"],
+                    "tracks_count": item.get("nb_tracks", 0)  # Додаємо кількість треків
+                })
+                seen_albums.add(album_key)
+
+        # Фільтруємо альбоми з малою кількістю треків (можливо, це не альбоми)
+        return [album for album in albums if album["tracks_count"] > 1]
+
+    except Exception as e:
+        print(f"Помилка пошуку альбомів: {str(e)}")
+        return []
 
 def get_popular_tracks():
     """Отримання популярних треків"""
@@ -150,7 +190,19 @@ def home():
 @app.route("/search")
 def search():
     query = request.args.get("query", "")
-    results = search_tracks(query) if query else []
+    results = []
+
+    if query:
+        # Додаємо треки до результатів
+        tracks = search_tracks(query)
+        for track in tracks:
+            track["type"] = "track"  # Позначаємо тип
+            results.append(track)
+
+        # Додаємо альбоми до результатів
+        albums = search_albums(query)
+        results.extend(albums)
+
     genres = get_all_genres()  # Отримуємо всі жанри
     user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
     return render_template("search_results.html", query=query, results=results,
@@ -170,6 +222,54 @@ def create_playlist():
     else:
         flash("Назва плейліста не може бути порожньою!", category='error_playlist')
     return redirect(request.referrer)
+
+# Маршрут для оновлення назви плейліста
+@app.route('/update_playlist_name', methods=['POST'])
+@login_required
+def update_playlist_name():
+    data = request.get_json()
+    playlist_id = data.get('playlist_id')
+    new_name = data.get('new_name')
+
+    if not playlist_id or not new_name:
+        return jsonify({"success": False, "error": "Не вказано ID плейліста або нову назву"}), 400
+
+    playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
+    if not playlist:
+        return jsonify({"success": False, "error": "Плейліст не знайдено або у вас немає прав"}), 404
+
+    try:
+        playlist.name = new_name
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# Маршрут для видалення плейліста
+@app.route('/delete_playlist', methods=['POST'])
+@login_required
+def delete_playlist():
+    data = request.get_json()
+    playlist_id = data.get('playlist_id')
+
+    if not playlist_id:
+        return jsonify({"success": False, "error": "Не вказано ID плейліста"}), 400
+
+    playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
+    if not playlist:
+        return jsonify({"success": False, "error": "Плейліст не знайдено або у вас немає прав"}), 404
+
+    try:
+        # Спочатку видаляємо всі треки плейліста
+        Track.query.filter_by(playlist_id=playlist_id).delete()
+        # Потім видаляємо сам плейліст
+        db.session.delete(playlist)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # Додавання треку до плейліста
 @app.route("/add_to_playlist", methods=["POST"])
@@ -281,7 +381,8 @@ def album_detail(album_id):
             "title": album_data["title"],
             "artist": album_data["artist"]["name"],
             "image": album_data.get("cover_big", ""),
-            "tracks": tracks
+            "tracks": tracks,
+            "tracks_count": album_data.get("nb_tracks", 0)
         }
 
         user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
@@ -316,20 +417,35 @@ def search_by_genre(genre_name):
         }
         response = requests.get(url, params=params)
         data = response.json()
-        tracks = []
 
+        tracks = []
         for item in data.get("data", []):
             tracks.append({
+                "type": "track",  # Додаємо тип для ідентифікації
                 "title": item["title"],
                 "artist": item["artist"]["name"],
                 "image": item["album"]["cover_big"],
                 "id": item["id"],
                 "preview_url": item.get("preview", ""),
             })
+        # Пошук альбомів за жанром
+        albums_url = f"{DEEZER_API_URL}/search/album"
+        albums_response = requests.get(albums_url, params={"q": f"genre:'{genre_name}'", "limit": 1000})
+        albums_data = albums_response.json()
+
+        albums = []
+        for item in albums_data.get("data", []):
+            albums.append({
+                "type": "album",
+                "title": item["title"],
+                "artist": item["artist"]["name"],
+                "image": item["cover_big"],
+                "id": item["id"],
+            })
 
         user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
 
-        return render_template("search_results.html", query=genre_name, results=tracks, playlists=user_playlists, genres=genres, user=current_user)
+        return render_template("search_results.html", query=genre_name, results=tracks + albums, playlists=user_playlists, genres=genres, user=current_user)
     except Exception as e:
         print(f"Помилка пошуку за жанром: {str(e)}")
         flash("Помилка пошуку за жанром", "error")

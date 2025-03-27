@@ -208,7 +208,7 @@
     <!-- Модальное окно для неавторизованных пользователей -->
     <div id="authRequiredModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeAuthRequiredModal()">&times;</span>
+            <span class="close" onclick="closeModal('authRequiredModal')">&times;</span>
             <h2>Увійдіть або зареєструйтесь</h2>
             <p>Щоб створити плейліст або додати трек до плейліста, будь ласка, <a href="{{ url_for('login') }}">увійдіть</a> або <a href="{{ url_for('register') }}">зареєструйтесь</a>.</p>
         </div>

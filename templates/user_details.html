@@ -276,6 +276,17 @@
             transform: scale(1.05);
             box-shadow: 0 0 15px var(--neon-blue);
         }
+
+        /* Стилі для полів з іконкою ока */
+        .input-with-eye {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-with-eye input {
+            padding-right: 40px; /* Залишаємо місце для іконки */
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -310,7 +321,7 @@
             <div class="password-container">
                 <div class="info-display">
                     <span>Ім'я користувача: {{ current_user.username }}</span>
-                    <i class="fas fa-edit toggle-password" onclick="openUsernameModal()"></i>
+                    <i class="fas fa-edit toggle-password" onclick="openModal('usernameModal')"></i>
                 </div>
             </div>
             <div class="info-display">
@@ -319,13 +330,13 @@
             <div class="password-container">
                 <div class="info-display">
                     <span>Пароль: <span id="password-placeholder">********</span></span>
-                    <i class="fas fa-eye toggle-password" onclick="openPasswordCheckModal()"></i>
+                    <i class="fas fa-eye toggle-password" onclick="openModal('passwordCheckModal')"></i>
                 </div>
             </div>
             <div class="password-container">
                 <div class="info-display">
                     <span>Змінити пароль </span>
-                    <i class="fas fa-edit toggle-password" onclick="openPasswordModal()"></i>
+                    <i class="fas fa-edit toggle-password" onclick="openModal('passwordModal')"></i>
                 </div>
             </div>
         </div>
@@ -354,17 +365,20 @@
         <!-- Секция для удаления аккаунта -->
         <div class="profile-section">
             <h2>Видалення акаунту</h2>
-            <button class="delete-account-btn" onclick="openDeleteAccountModal()"><i class="fas fa-trash"></i></button>
+            <button class="delete-account-btn" onclick="openModal('deleteAccountModal')"><i class="fas fa-trash"></i></button>
         </div>
     </div>
 
     <!-- Модальное окно подтверждения удаления -->
     <div id="deleteAccountModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeDeleteAccountModal()">&times;</span>
+            <span class="close" onclick="closeModal('deleteAccountModal')">&times;</span>
             <h2>Видалення акаунту</h2>
             <p>Введіть ваш пароль для підтвердження:</p>
-            <input type="password" id="deletePassword" placeholder="Ваш пароль">
+            <div class="input-with-eye">
+                <input type="password" id="deletePassword" placeholder="Ваш пароль">
+                <i class="fas fa-eye toggle-password" onclick="toggleVisibility('deletePassword')"></i>
+            </div>
             <button onclick="confirmDeleteAccount()">Видалити</button>
         </div>
     </div>
@@ -372,9 +386,12 @@
     <!-- Модальное окно подтверждения просмотра пароля -->
     <div id="passwordCheckModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closePasswordCheckModal()">&times;</span>
+            <span class="close" onclick="closeModal('passwordCheckModal')">&times;</span>
             <h2>Перегляд паролю</h2>
-            <input type="password" id="checkPasswordInput" placeholder="Введіть ваш пароль">
+            <div class="input-with-eye">
+                <input type="password" id="checkPasswordInput" placeholder="Введіть ваш пароль">
+                <i class="fas fa-eye toggle-password" onclick="toggleVisibility('checkPasswordInput')"></i>
+            </div>
             <button onclick="verifyPassword()">Переглянути</button>
         </div>
     </div>
@@ -382,7 +399,7 @@
     <!-- Модальное окно для изменения ника -->
     <div id="usernameModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeUsernameModal()">&times;</span>
+            <span class="close" onclick="closeModal('usernameModal')">&times;</span>
             <h2>Змінити ім'я користувача</h2>
             <input type="text" id="newUsername" placeholder="Нове ім'я користувача">
             <button onclick="updateUsername()">Зберегти</button>
@@ -392,11 +409,17 @@
     <!-- Модальное окно для изменения пароля -->
     <div id="passwordModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closePasswordModal()">&times;</span>
+            <span class="close" onclick="closeModal('passwordModal')">&times;</span>
             <h2>Змінити пароль</h2>
             <div class="password-container">
-                <input type="password" name="password" id="newPassword" placeholder="Новий пароль">
-                <input type="password" id="confirmPassword" placeholder="Підтвердіть пароль">
+                 <div class="input-with-eye">
+                    <input type="password" name="password" id="newPassword" placeholder="Новий пароль">
+                    <i class="fas fa-eye toggle-password" onclick="toggleVisibility('newPassword')"></i>
+                </div>
+                <div class="input-with-eye">
+                    <input type="password" id="confirmPassword" placeholder="Підтвердіть пароль">
+                    <i class="fas fa-eye toggle-password" onclick="toggleVisibility('confirmPassword')"></i>
+                </div>
             </div>
             <button onclick="updatePassword()">Зберегти</button>
         </div>
@@ -440,15 +463,19 @@
 
     <script src="/static/js/common.js"></script>
     <script>
-        function togglePasswordVisibility(inputId) {
-            var inputField = document.getElementById(inputId);
-            var currentType = inputField.getAttribute('type');
+        // Функція для перемикання видимості пароля
+        function toggleVisibility(inputId) {
+            const inputField = document.getElementById(inputId);
+            const eyeIcon = inputField.nextElementSibling; // Отримуємо іконку ока
 
-            // Переключаем между типами password и text
-            if (currentType === 'password') {
-                inputField.setAttribute('type', 'text');
+            if (inputField.type === 'password') {
+                inputField.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
             } else {
-                inputField.setAttribute('type', 'password');
+                inputField.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
             }
         }
         // Функция для отображения всплывающего сообщения
@@ -459,14 +486,6 @@
             setTimeout(() => {
                 toast.style.display = 'none';
             }, 5000);
-        }
-
-        function openDeleteAccountModal() {
-            document.getElementById("deleteAccountModal").style.display = "block";
-        }
-
-        function closeDeleteAccountModal() {
-            document.getElementById("deleteAccountModal").style.display = "none";
         }
 
         function confirmDeleteAccount() {
@@ -494,17 +513,7 @@
                 }
             });
 
-            closeDeleteAccountModal();
-        }
-
-        // Функция для открытия модального окна изменения ника
-        function openUsernameModal() {
-            document.getElementById('usernameModal').style.display = 'block';
-        }
-
-        // Функция для закрытия модального окна изменения ника
-        function closeUsernameModal() {
-            document.getElementById('usernameModal').style.display = 'none';
+            closeModal('deleteAccountModal');
         }
 
         // Функция для обновления ника
@@ -528,16 +537,6 @@
                     }
                 });
             }
-        }
-
-        // Функция для открытия модального окна изменения пароля
-        function openPasswordModal() {
-            document.getElementById('passwordModal').style.display = 'block';
-        }
-
-        // Функция для закрытия модального окна изменения пароля
-        function closePasswordModal() {
-            document.getElementById('passwordModal').style.display = 'none';
         }
 
         // Функция для обновления пароля
@@ -601,14 +600,6 @@
             .catch(error => console.error("Помилка завантаження аватара:", error));
         }
 
-        function openPasswordCheckModal() {
-            document.getElementById("passwordCheckModal").style.display = "block";
-        }
-
-        function closePasswordCheckModal() {
-            document.getElementById("passwordCheckModal").style.display = "none";
-        }
-
         // Отправляем запрос на сервер для проверки пароля
         function verifyPassword() {
             let enteredPassword = document.getElementById("checkPasswordInput").value;
@@ -624,7 +615,7 @@
             .then(data => {
                 if (data.success) {
                     document.getElementById("password-placeholder").innerText = data.password;
-                    closePasswordCheckModal();
+                    closeModal('passwordCheckModal');
                 } else {
                     showToast("Невірний пароль!", "error");
                 }

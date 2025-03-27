@@ -134,10 +134,6 @@ window.onclick = function(event) {
     }
 }
 
-//Функции с модальным окном
-function closeModal2() {
-    document.getElementById("errorModal").style.display = "none";
-}
 // Функция для отображения модального окна с сообщением об ошибке
 function showErrorModal(message) {
     document.getElementById("errorMessage").innerText = message;
@@ -158,12 +154,12 @@ function clearFlashMessages() {
     });
 }
 
-// Функция для открытия модального окна с предложением войти или зарегистрироваться
-function openAuthRequiredModal() {
-    document.getElementById("authRequiredModal").style.display = "block";
+// Функция для открытия модального окна
+function openModal(inputId) {
+    document.getElementById(inputId).style.display = 'block';
 }
 
-// Функция для закрытия модального окна с предложением войти или зарегистрироваться
-function closeAuthRequiredModal() {
-    document.getElementById("authRequiredModal").style.display = "none";
+// Функция для закрытия модального окна
+function closeModal(inputId) {
+    document.getElementById(inputId).style.display = 'none';
 }

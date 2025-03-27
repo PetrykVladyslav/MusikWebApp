@@ -270,3 +270,55 @@ nav {
 .dropdown:hover .dropbtn {
     background-color: #333;
 }
+
+/* Стилі для редагування назви плейліста */
+.playlist-name-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-icon {
+    color: rgba(255, 0, 255, 0.5);
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: 0.3s;
+}
+
+.edit-icon:hover {
+    color: var(--neon-pink);
+    transform: scale(1.1);
+}
+
+.delete-playlist-btn {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 0, 0, 0.7);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.delete-playlist-btn:hover {
+    background: rgba(255, 0, 0, 0.9);
+    transform: scale(1.05);
+}
+
+/* Модальні вікна для управління плейлістом */
+#renameModal, #deletePlaylistModal {
+    display: none;
+    position: fixed;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Затемнение фона */
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
