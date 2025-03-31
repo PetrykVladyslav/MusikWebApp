@@ -98,6 +98,7 @@
             border-radius: 10px;
             text-align: center;
             transition: 0.3s;
+            position: relative;
         }
 
         .playlist-card:hover {
@@ -169,12 +170,6 @@
         .file-upload .save-avatar-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 15px var(--neon-pink);
-        }
-
-        /* Контейнер для аватара */
-        .avatar-preview {
-            text-align: center;
-            margin-bottom: 10px;
         }
 
         .avatar-preview img {
@@ -306,7 +301,7 @@
             </div>
         </div>
         <div class="user-avatar">
-            <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown()">
+            <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown('userDropdown')">
             <div id="userDropdown" class="dropdown-content">
                 <a href="{{ url_for('user_details') }}">Профіль</a>
                 <a href="{{ url_for('logout') }}" class="logout-btn">Вийти</a>
@@ -356,9 +351,27 @@
             <div class="playlist-grid">
                 {% for playlist in current_user.playlists %}
                 <div class="playlist-card">
+                    {% if playlist.name == "Обрані" %}
+                        <i class="fas fa-star playlist-icon"></i>
+                    {% endif %}
                     <a href="{{ url_for('playlist_detail', playlist_id=playlist.id) }}">{{ playlist.name }}</a>
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h2>Активність користувача</h2>
+            <div class="password-container">
+                <div class="info-display">
+                    <i class="fas fa-clock"></i>
+                    <span>Загальний час на сервісі: {{ (user.total_time_online // 3600) }} годин {{ (user.total_time_online % 3600) // 60 }} хв</span>
+                </div>
+
+                <div class="info-display">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Остання активність: {{ user.last_active.strftime('%d.%m.%Y %H:%M') if user.last_active else 'Даних немає' }}</span>
+                </div>
             </div>
         </div>
 
@@ -713,6 +726,33 @@
         volumeControl.addEventListener("input", () => {
             audioPlayer.volume = volumeControl.value;
             savePlayerState(); // Сохраняем состояние
+        });
+
+        // Функція для оновлення активності
+        function updateActivity() {
+            fetch('/update_activity')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
+                .then(data => {
+                    const totalSeconds = parseInt(data.total_time_online) || 0;
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = Math.floor(totalSeconds % 60);
+
+                    const timeElement = document.querySelector('.info-display span:nth-child(2)');
+                    if (timeElement) {
+                        timeElement.textContent = `Загальний час на сервісі: ${hours} год ${minutes} хв ${seconds} с`;
+                    }
+                })
+                .catch(error => console.error('Помилка оновлення активності:', error));
+        }
+
+        // Запускаємо оновлення при завантаженні та кожну хвилину
+        document.addEventListener('DOMContentLoaded', function() {
+            updateActivity();
+            setInterval(updateActivity, 60000);
         });
     </script>
 </body>

@@ -164,6 +164,11 @@
             0%, 100% { opacity: 0; }
             10%, 90% { opacity: 1; }
         }
+        /* Контейнер, чтобы звезда привязывалась к изображению */
+        .playlist-cover-container {
+            position: relative;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -184,7 +189,7 @@
         </div>
         {% if current_user.is_authenticated %}
             <div class="user-avatar">
-                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown()">
+                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown('userDropdown')">
                 <div id="userDropdown" class="dropdown-content">
                     <a href="{{ url_for('user_details') }}">Профіль</a>
                     <a href="{{ url_for('logout') }}" class="logout-btn">Вийти</a>
@@ -200,7 +205,13 @@
 
     <div class="playlist-detail">
         <div class="playlist-header">
-            <img src="{{ playlist.tracks[0].image if playlist.tracks else 'default_cover.jpg' }}" alt="{{ playlist.name }}" class="playlist-cover">
+            <div class="playlist-cover-container">
+                <img src="{{ playlist.tracks[0].image if playlist.tracks else url_for('static', filename='images/default_cover.jpg') }}"
+                     alt="{{ playlist.name }}" class="playlist-cover">
+                {% if playlist.name == "Обрані" %}
+                    <i class="fas fa-star playlist-icon"></i> <!-- Добавляем звезду на обложку -->
+                {% endif %}
+            </div>
             <div class="playlist-info">
                 <div class="playlist-name-container">
                     <h1 id="playlist-name">{{ playlist.name }}</h1>

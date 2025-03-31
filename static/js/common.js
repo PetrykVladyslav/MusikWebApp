@@ -1,12 +1,3 @@
-function togglePlaylistDropdown() {
-    const dropdown = document.getElementById("playlistDropdown");
-    if (dropdown.style.display === "block") {
-        dropdown.style.display = "none";
-    } else {
-        dropdown.style.display = "block";
-    }
-}
-
 function closeAddToPlaylistModal() {
     document.getElementById("addToPlaylistModal").style.display = "none";
     document.getElementById("playlistDropdown").style.display = "none"; // Закрываем выпадающий список при закрытии модального окна
@@ -102,8 +93,8 @@ function togglePasswordVisibility() {
 }
 
 //Випадаюче вікно
-function toggleDropdown() {
-    const dropdown = document.getElementById("userDropdown");
+function toggleDropdown(inputId) {
+    const dropdown = document.getElementById(inputId);
     if (dropdown.style.display === "block") {
         dropdown.style.display = "none";
     } else {

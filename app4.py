@@ -1,10 +1,11 @@
+import datetime
 import os
 from datetime import timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, get_flashed_messages
 import requests
 import random
 from auth import db, login_manager, register_user, login_user_by_credentials, logout_current_user, User, \
-    get_user_playlists, Playlist, Track
+    get_user_playlists, Playlist, Track, update_user_activity
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.utils import secure_filename
 
@@ -400,7 +401,6 @@ def get_preview(track_id):
     response = requests.get(url)
     data = response.json()
 
-    print(f"DEBUG: Получен ответ от Deezer API для track_id {track_id}: {data}")
     preview_url = data.get("preview", "")  # Ссылка на 30-секундный фрагмент
     return {"preview_url": preview_url}
 
@@ -498,7 +498,7 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
-    message = logout_current_user()
+    message = logout_current_user(current_user)
     flash(message, category='success_logout')  # Категория для успешного выхода
     return redirect(url_for('home'))
 
@@ -611,6 +611,14 @@ def update_password():
 
     return jsonify({"success": True})
 
+@app.route('/update_activity')
+@login_required
+def update_activity():
+    update_user_activity(current_user)
+    return jsonify({
+        'total_time_online': current_user.total_time_online,
+        'last_active': current_user.last_active.strftime('%d.%m.%Y %H:%M:%S') if current_user.last_active else None
+    })
 
 @app.route('/get_user_password', methods=['POST'])
 @login_required
@@ -622,7 +630,6 @@ def get_user_password():
         return jsonify({"success": True, "password": entered_password})
     else:
         return jsonify({"success": False}), 401
-
 
 @app.route('/clear_flash_messages', methods=['POST'])
 def clear_flash_messages():

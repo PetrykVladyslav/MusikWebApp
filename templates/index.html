@@ -213,7 +213,7 @@
         </div>
         {% if current_user.is_authenticated %}
             <div class="user-avatar">
-                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="toggleDropdown()">
+                <img src="{{ url_for('static', filename=user.avatar) }}" alt="User Avatar" onclick="v">
                 <div id="userDropdown" class="dropdown-content">
                     <a href="{{ url_for('user_details') }}">Профіль</a>
                     <a href="{{ url_for('logout') }}" class="logout-btn">Вийти</a>
@@ -301,6 +301,9 @@
     <div class="scroll-container">
         {% for playlist in current_user.playlists %}
         <div class="playlist-card" onclick="window.location.href='{{ url_for('playlist_detail', playlist_id=playlist.id) }}'">
+            {% if playlist.name == "Обрані" %}
+                <i class="fas fa-star playlist-icon"></i>
+            {% endif %}
             <img src="{{ playlist.tracks[0].image if playlist.tracks else url_for('static', filename='images/default_cover.jpg') }}" alt="{{ playlist.name }}" class="playlist-cover">
             <div class="playlist-info">
                 <h3>{{ playlist.name }}</h3>
@@ -324,7 +327,7 @@
         <span class="close" onclick="closeAddToPlaylistModal()">&times;</span>
         <h2>Виберіть плейліст</h2>
         <div class="playlist-select-container">
-            <button class="select-playlist-btn" onclick="togglePlaylistDropdown()">Обрати плейліст</button>
+            <button class="select-playlist-btn" onclick="toggleDropdown('playlistDropdown')">Обрати плейліст</button>
             <div id="playlistDropdown" class="playlist-dropdown">
                 <form id="addToPlaylistForm" action="{{ url_for('add_to_playlist') }}" method="POST">
                     <input type="hidden" name="track_id" id="trackId">
