@@ -1,7 +1,8 @@
-import datetime
 import os
 from datetime import timedelta
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, get_flashed_messages
+import tempfile
+import urllib.request
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, get_flashed_messages, send_file
 import requests
 import random
 from auth import db, login_manager, register_user, login_user_by_credentials, logout_current_user, User, \
@@ -186,6 +187,13 @@ def home():
 
     return render_template("index.html", popular_tracks=popular_tracks, popular_albums=popular_albums,
                            playlists=user_playlists, genres=genres, user=current_user)
+
+# Сторінка з інформацією про додаток
+@app.route("/about")
+def about():
+    """Сторінка 'Про нас'"""
+    genres = get_all_genres()  # Отримуємо всі жанри
+    return render_template("about.html", genres=genres, user=current_user)
 
 # Сторінка з результатами пошуку
 @app.route("/search")
@@ -635,6 +643,45 @@ def get_user_password():
 def clear_flash_messages():
     session.pop('_flashes', None)  # Очищаем все сообщения flash
     return '', 204  # Возвращаем пустой ответ с кодом 204 (No Content)
+
+# Маршрут для завантаження
+@app.route('/download_track/<track_id>')
+@login_required
+def download_track(track_id):
+    try:
+        # Отримуємо інформацію про трек з Deezer API
+        track_info = requests.get(f"{DEEZER_API_URL}/track/{track_id}").json()
+
+        if 'error' in track_info:
+            flash("Трек не знайдено", "error")
+            return redirect(request.referrer)
+
+        # Отримуємо URL для завантаження (використовуємо preview як приклад)
+        download_url = track_info.get('preview')
+        if not download_url:
+            flash("Цей трек не доступний для завантаження", "error")
+            return redirect(request.referrer)
+
+        # Завантажуємо тимчасовий файл
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            urllib.request.urlretrieve(download_url, tmp_file.name)
+
+            # Готуємо ім'я файлу
+            artist = track_info['artist']['name']
+            title = track_info['title']
+            filename = f"{artist} - {title}.mp3".replace("/", "-")
+
+            # Відправляємо файл користувачу
+            return send_file(
+                tmp_file.name,
+                as_attachment=True,
+                download_name=filename,
+                mimetype='audio/mpeg'
+            )
+
+    except Exception as e:
+        flash(f"Помилка при завантаженні: {str(e)}", "error")
+        return redirect(request.referrer)
 
 if __name__ == "__main__":
     app.run(debug=True)

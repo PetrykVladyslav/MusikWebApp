@@ -154,3 +154,34 @@ function openModal(inputId) {
 function closeModal(inputId) {
     document.getElementById(inputId).style.display = 'none';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Обробник кнопок завантаження
+    document.querySelectorAll('.download-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            event.stopPropagation();
+            const trackId = this.getAttribute('data-track-id');
+            if (trackId) {
+                window.location.href = `/download_track/${trackId}`;
+            }
+        });
+    });
+});
+
+// Функция для обновления активности пользователя
+function updateUserActivity() {
+    if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        fetch('/update_activity')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Activity updated');
+            })
+            .catch(error => console.error('Error updating activity:', error));
+    }
+}
+
+// Обновляем активность каждую минуту
+setInterval(updateUserActivity, 60000);
+
+// Также обновляем активность при загрузке страницы
+document.addEventListener('DOMContentLoaded', updateUserActivity);

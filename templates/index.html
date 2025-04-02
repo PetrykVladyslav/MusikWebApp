@@ -201,7 +201,6 @@
         <div class="nav-links">
             <a href="/home">Головна</a>
             <a href="/about">Про нас</a>
-            <a href="#">Соц. мережі</a>
             <div class="dropdown">
                 <a href="#" class="dropbtn">Жанри</a>
                 <div class="dropdown-content">
@@ -276,9 +275,11 @@
                 <button class="action-btn" title="Додати до плейліста" onclick="event.stopPropagation(); openAddToPlaylistModal('{{ track.id }}', '{{ track.title }}', '{{ track.artist }}', '{{ track.image }}')">
                     <i class="fas fa-plus"></i>
                 </button>
-                <button class="action-btn" title="Завантажити">
-                    <i class="fas fa-download"></i>
-                </button>
+                {% if current_user.is_authenticated %}
+                    <button class="action-btn download-btn" title="Завантажити" data-track-id="{{ track.id }}">
+                        <i class="fas fa-download"></i>
+                    </button>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

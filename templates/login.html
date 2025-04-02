@@ -16,8 +16,7 @@
         <div class="logo">MWPS</div>
         <div class="nav-links">
             <a href="{{ url_for('home') }}">Головна</a>
-            <a href="#">Про нас</a>
-            <a href="#">Соц. мережі</a>
+            <a href="{{ url_for('about') }}">Про нас</a>
             <div class="dropdown">
                 <a href="#" class="dropbtn">Жанри</a>
                 <div class="dropdown-content">
@@ -48,6 +47,19 @@
                 </label>
                 <button type="submit">Увійти</button>
             </form>
+            <div class="social-login">
+                <p>Або увійдіть через:</p>
+                <div class="social-buttons">
+                    <a href="{{ url_for('login') }}" class="social-btn google">
+                        <img src="{{ url_for('static', filename='images/google-icon.png') }}" alt="Google">
+                        Google
+                    </a>
+                    <a href="{{ url_for('login') }}" class="social-btn facebook">
+                        <img src="{{ url_for('static', filename='images/facebook-icon.png') }}" alt="Facebook">
+                        Facebook
+                    </a>
+                </div>
+            </div>
             <p>Ще не маєте акаунта? <a href="{{ url_for('register') }}">Зареєструватися</a></p>
         </div>
     </div>
