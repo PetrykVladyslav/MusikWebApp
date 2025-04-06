@@ -1,0 +1,22 @@
+<!-- Модальне вікно для зміни назви -->
+<div id="renameModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('renameModal')">&times;</span>
+        <h2>Змінити назву плейліста</h2>
+        <input type="text" id="newPlaylistName" placeholder="Нова назва">
+        <button onclick="updatePlaylistName()">Зберегти</button>
+    </div>
+</div>
+
+<!-- Модальне вікно для підтвердження видалення -->
+<div id="deletePlaylistModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('deletePlaylistModal')">&times;</span>
+        <h2>Видалити плейліст?</h2>
+        <p>Ви впевнені, що хочете видалити цей плейліст? Цю дію неможливо скасувати.</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="deletePlaylist()">Видалити</button>
+            <button class="cancel" onclick="closeModal('deletePlaylistModal')">Скасувати</button>
+        </div>
+    </div>
+</div>

@@ -1,3 +1,4 @@
+# Імпорт всіх необхідних бібліотек.
 import os
 from datetime import timedelta
 import tempfile
@@ -10,6 +11,7 @@ from auth import db, login_manager, register_user, login_user_by_credentials, lo
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.utils import secure_filename
 
+#Ініціалізація додатку.
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
@@ -55,7 +57,6 @@ def search_tracks(query):
             "preview_url": item.get("preview", ""),  # Добавляем ссылку на превью
         })
     return tracks
-
 
 def search_albums(query):
     """Пошук альбомів за запитом з додатковою перевіркою"""
@@ -280,7 +281,7 @@ def delete_playlist():
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
 
-# Додавання треку до плейліста
+# Додавання треку до плейліста.
 @app.route("/add_to_playlist", methods=["POST"])
 @login_required  # Только авторизованные пользователи могут добавлять треки
 def add_to_playlist():
@@ -327,6 +328,7 @@ def add_to_playlist():
     flash("Трек успішно додано до плейліста!", "success")
     return redirect(request.referrer)
 
+# Видалення треку з плейліста.
 @app.route("/delete_track", methods=["POST"])
 @login_required  # Только авторизованные пользователи могут удалять треки
 def delete_track():
@@ -349,6 +351,7 @@ def delete_track():
     db.session.commit()
     return jsonify({"success": True})
 
+# Сторінка для відображення плейлістів.
 @app.route("/playlist/<int:playlist_id>")
 @login_required  # Только авторизованные пользователи могут просматривать плейлисты
 def playlist_detail(playlist_id):
@@ -361,6 +364,7 @@ def playlist_detail(playlist_id):
         flash("Плейліст не знайдено!", "error")
         return redirect(url_for("home"))
 
+#  Сторінка для відображення альбомів.
 @app.route("/album/<int:album_id>")
 def album_detail(album_id):
     """Сторінка з деталями альбома"""
@@ -402,6 +406,7 @@ def album_detail(album_id):
         flash("Помилка отримання даних альбому", "error")
         return redirect(url_for("home"))
 
+# Функція для отримання 30-секундного превью-посилання трека
 @app.route("/get_preview/<track_id>")
 def get_preview(track_id):
     """Возвращает 30-секундный превью-урл трека"""
@@ -412,6 +417,7 @@ def get_preview(track_id):
     preview_url = data.get("preview", "")  # Ссылка на 30-секундный фрагмент
     return {"preview_url": preview_url}
 
+# Функція для пошуку за жанрами.
 @app.route("/genre/<genre_name>")
 def search_by_genre(genre_name):
     """Пошук треків за жанром"""
@@ -510,6 +516,7 @@ def logout():
     flash(message, category='success_logout')  # Категория для успешного выхода
     return redirect(url_for('home'))
 
+# Сторінка з профілем користувача.
 @app.route('/user_details')
 @login_required
 def user_details():
@@ -517,6 +524,7 @@ def user_details():
     user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
     return render_template('user_details.html', user=current_user, playlists=user_playlists, genres=genres)
 
+# Функція для оновлення даних користувача.
 @app.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
@@ -576,6 +584,7 @@ def update_username():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Функція для оновлення аватару.
 @app.route('/update_avatar', methods=['POST'])
 @login_required
 def update_avatar():
@@ -604,6 +613,7 @@ def update_avatar():
 
     return jsonify({"success": False, "error": "Неправильний формат файлу."})
 
+# Функція для оновлення паролю.
 @app.route('/update_password', methods=['POST'])
 @login_required
 def update_password():
@@ -619,6 +629,7 @@ def update_password():
 
     return jsonify({"success": True})
 
+# Функція для збору і аналізу активності користувача.
 @app.route('/update_activity')
 @login_required
 def update_activity():
@@ -628,6 +639,7 @@ def update_activity():
         'last_active': current_user.last_active.strftime('%d.%m.%Y %H:%M:%S') if current_user.last_active else None
     })
 
+# Функція для отримання паролю користувача.
 @app.route('/get_user_password', methods=['POST'])
 @login_required
 def get_user_password():
@@ -639,12 +651,13 @@ def get_user_password():
     else:
         return jsonify({"success": False}), 401
 
+# Функція для очищення повідомлень від сервера.
 @app.route('/clear_flash_messages', methods=['POST'])
 def clear_flash_messages():
     session.pop('_flashes', None)  # Очищаем все сообщения flash
     return '', 204  # Возвращаем пустой ответ с кодом 204 (No Content)
 
-# Маршрут для завантаження
+# Маршрут для завантаження трека.
 @app.route('/download_track/<track_id>')
 @login_required
 def download_track(track_id):

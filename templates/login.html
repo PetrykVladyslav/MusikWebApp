@@ -7,30 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_sec.css') }}">
-    <style>
-
-    </style>
 </head>
 <body>
-    <nav>
-        <div class="logo">MWPS</div>
-        <div class="nav-links">
-            <a href="{{ url_for('home') }}">Головна</a>
-            <a href="{{ url_for('about') }}">Про нас</a>
-            <div class="dropdown">
-                <a href="#" class="dropbtn">Жанри</a>
-                <div class="dropdown-content">
-                    {% for genre in genres %}
-                    <a href="{{ url_for('search_by_genre', genre_name=genre.name) }}">{{ genre.name }}</a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        <div class="auth-buttons">
-            <button class="auth-btn" onclick="window.location.href='{{ url_for('login') }}'">Увійти</button>
-            <button class="auth-btn" onclick="window.location.href='{{ url_for('register') }}'">Реєстрація</button>
-        </div>
-    </nav>
+    {% include 'partials/navbar.html' %}
 
     <div class="auth-container">
         <div class="auth-form">

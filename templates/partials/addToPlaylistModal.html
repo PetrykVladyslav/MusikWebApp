@@ -1,0 +1,25 @@
+<!-- Всплывающее модальное окно для выбора плейлиста -->
+<div id="addToPlaylistModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddToPlaylistModal()">&times;</span>
+        <h2>Виберіть плейліст</h2>
+        <div class="playlist-select-container">
+            <button class="select-playlist-btn" onclick="toggleDropdown('playlistDropdown')">Обрати плейліст</button>
+            <div id="playlistDropdown" class="playlist-dropdown">
+                <form id="addToPlaylistForm" action="{{ url_for('add_to_playlist') }}" method="POST">
+                    <input type="hidden" name="track_id" id="trackId">
+                    <input type="hidden" name="track_title" id="trackTitle">
+                    <input type="hidden" name="track_artist" id="trackArtist">
+                    <input type="hidden" name="track_image" id="trackImage">
+                    <select name="playlist_id" required>
+                        <option value="" disabled selected>Виберіть плейліст</option>
+                        {% for playlist in playlists %}
+                        <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="confirm-btn" >Додати</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

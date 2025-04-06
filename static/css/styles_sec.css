@@ -512,3 +512,20 @@
     90% { opacity: 1; }
     100% { opacity: 0; }
 }
+
+@media (max-width: 600px) {
+    .track-card, .album-card, .playlist-card {
+        max-width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .search-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}

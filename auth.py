@@ -1,3 +1,4 @@
+# Імпорт всіх необхідних бібліотек.
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, logout_user
@@ -102,6 +103,7 @@ def logout_current_user(user):
     logout_user()
     return "Ви вийшли з системи."
 
+# Функція для оновлення часу активності користувача.
 def update_user_activity(user):
     """ Обновляет время активности пользователя """
     if user.is_authenticated:
