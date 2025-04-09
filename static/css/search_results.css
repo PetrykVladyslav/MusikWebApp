@@ -1,0 +1,96 @@
+/* Стилі для результатів пошуку */
+.search-results-container {
+    margin-top: -40px;
+    padding: 2rem 5%;
+}
+
+.results-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.result-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1rem;
+    transition: 0.3s;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px var(--neon-pink);
+}
+
+.result-image {
+    width: 100%;
+    height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    border: 2px solid var(--neon-blue);
+}
+
+.result-info h3 {
+    color: var(--neon-blue);
+    margin-bottom: 0.5rem;
+}
+
+.result-info p {
+    color: #888;
+}
+
+.no-results {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--neon-pink);
+    margin-top: 3rem;
+}
+
+/* Стилі для кнопок додавання до плейліста */
+.result-card:hover .track-actions {
+    display: flex;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--cyber-gradient);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--neon-pink);
+}
+
+.item-type {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 243, 255, 0.2);
+    border-radius: 5px;
+    font-size: 0.8rem;
+    color: var(--neon-blue);
+    margin-top: 0.5rem;
+}
+
+.result-card[onclick] {
+    cursor: pointer;
+}

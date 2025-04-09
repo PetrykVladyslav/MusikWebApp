@@ -1,0 +1,126 @@
+/* Стилі для сторінки "Про нас" */
+.about-container {
+    margin-top: 180px;
+    padding: 2rem 5%;
+    color: whitesmoke;
+}
+
+.about-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 20px var(--neon-blue);
+}
+
+.about-section h2 {
+    color: var(--neon-blue);
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+.about-section p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.developers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.developer-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: 0.3s;
+    border: 1px solid var(--neon-pink);
+}
+
+.developer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 25px var(--neon-pink);
+}
+
+.developer-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--neon-blue);
+    margin: 0 auto 1rem;
+    display: block;
+}
+
+.developer-info h3 {
+    color: var(--neon-blue);
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.developer-info p {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-links a {
+    color: var(--neon-blue);
+    font-size: 1.5rem;
+    transition: 0.3s;
+}
+
+.social-links a:hover {
+    color: var(--neon-pink);
+    transform: scale(1.2);
+}
+
+.documentation-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    text-align: center;
+    border: 1px solid var(--neon-blue);
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.documentation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 25px var(--neon-blue);
+}
+
+.documentation-card h3 {
+    color: var(--neon-blue);
+    margin-bottom: 1rem;
+}
+
+.documentation-btn {
+    padding: 0.8rem 1.5rem;
+    margin-top: 15px;
+    background: var(--cyber-gradient);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.3s;
+    display: inline-block;
+}
+
+.documentation-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--neon-pink);
+}

@@ -1,0 +1,283 @@
+.profile-container {
+    margin-top: 120px;
+    padding: 2rem 5%;
+    text-align: center;
+}
+
+.profile-section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 0 20px var(--neon-blue);
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.profile-section h2 {
+    color: var(--neon-blue);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.profile-section label {
+    color: var(--neon-blue);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.profile-section input {
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 2px solid var(--neon-blue);
+    background: transparent;
+    color: white;
+    border-radius: 30px;
+    font-size: 1rem;
+}
+
+.profile-section input:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.profile-section button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--cyber-gradient);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.profile-section button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--neon-pink);
+}
+
+.profile-section p {
+    color: #888;
+    margin-top: 1rem;
+}
+
+.profile-section a {
+    color: var(--neon-blue);
+    text-decoration: none;
+}
+
+.profile-section a:hover {
+    text-decoration: underline;
+}
+
+.playlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.playlist-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    transition: 0.3s;
+    position: relative;
+}
+
+.playlist-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.playlist-card a {
+    color: white;
+    text-decoration: none;
+}
+
+.playlist-card a:hover {
+    text-decoration: underline;
+}
+
+.delete-account-btn {
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.delete-account-btn:hover {
+    background: darkred;
+}
+
+.username-display span {
+    font-size: 1.2rem;
+    color: white;
+}
+
+.username-display button {
+    background: none;
+    border: none;
+    color: var(--neon-blue);
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+/* Кнопки загрузки */
+.file-upload {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.file-upload label,
+.file-upload .save-avatar-btn {
+    background: var(--cyber-gradient);
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.file-upload label:hover,
+.file-upload .save-avatar-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--neon-pink);
+}
+
+.avatar-preview img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-pink);
+    transition: 0.3s;
+}
+
+/* Наведение на аватар */
+.avatar-preview img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--neon-blue);
+}
+
+/* Стили для отображения ника, почты и пароля */
+.info-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05); /* Серый фон */
+    border-radius: 10px;
+}
+
+.info-display:hover {
+    box-shadow: 0 0 25px var(--neon-pink);
+}
+
+.info-display span {
+    font-size: 1.2rem;
+    color: cornflowerblue;
+}
+
+.info-display button {
+    background: none;
+    border: none;
+    color: var(--neon-blue);
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 10px;
+}
+
+/* Стили для всплывающих сообщений */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--neon-blue);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    z-index: 1000;
+    animation: fadeIn 0.5s, fadeOut 0.5s 2.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    top: 41%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 30px;
+    color: var(--neon-blue);
+}
+
+.toggle-password:hover {
+    transform: translateY(-15px) scale(1.05);
+    box-shadow: 0 0 25px var(--neon-pink);
+}
+
+.modal button {
+    padding: 10px 20px;
+    background: var(--cyber-gradient);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+}
+
+.modal button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+/* Стилі для полів з іконкою ока */
+.input-with-eye {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.input-with-eye input {
+    padding-right: 40px; /* Залишаємо місце для іконки */
+    width: 100%;
+}

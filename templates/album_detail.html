@@ -4,77 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MWPS | {{ album.title }}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_sec.css') }}">
-    <style>
-        /* Стили для деталей альбома */
-        .album-detail {
-            margin-top: 120px;
-            padding: 2rem 5%;
-        }
-
-        .album-header {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .album-cover {
-            width: 200px;
-            height: 200px;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-
-        .album-info h1 {
-            font-size: 2.5rem;
-            color: var(--neon-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .album-info p {
-            color: #888;
-            font-size: 1.2rem;
-        }
-
-        .tracks-list {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .track-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-
-        .track-item img {
-            width: 50px;
-            height: 50px;
-            border-radius: 5px;
-            object-fit: cover;
-        }
-
-        .track-info h3 {
-            color: var(--neon-blue);
-            margin-bottom: 0.25rem;
-        }
-
-        .track-info p {
-            color: #888;
-        }
-
-        /* Стили для треков при наведении */
-        .track-item:hover {
-            box-shadow: 0 0 30px var(--neon-pink);
-            cursor: pointer; /* Изменение курсора */
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/album_detail.css') }}">
 </head>
 <body data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}">
     {% include 'partials/navbar.html' %}
@@ -127,8 +61,5 @@
 
     <script src="/static/js/common.js"></script>
     <script src="/static/js/player.js"></script>
-    <script>
-
-    </script>
 </body>
 </html>

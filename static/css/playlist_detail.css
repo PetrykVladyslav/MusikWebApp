@@ -1,0 +1,166 @@
+/* Стили для деталей плейлиста */
+.playlist-detail {
+    margin-top: 120px;
+    padding: 2rem 5%;
+}
+
+.playlist-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.playlist-cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.playlist-info h1 {
+    font-size: 2.5rem;
+    color: var(--neon-blue);
+    margin-bottom: 0.5rem;
+}
+
+.playlist-info p {
+    color: #888;
+    font-size: 1.2rem;
+}
+
+.tracks-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.track-item img {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.track-info h3 {
+    color: var(--neon-blue);
+    margin-bottom: 0.25rem;
+}
+
+.track-info p {
+    color: #888;
+}
+
+/* Стили для треков при наведении */
+.track-item:hover {
+    box-shadow: 0 0 30px var(--neon-pink);
+    cursor: pointer; /* Изменение курсора */
+}
+
+/* Кнопка удаления трека */
+.delete-btn {
+    margin-left: auto; /* Перемещаем кнопку в конец трека */
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.delete-btn:hover {
+    background: red;
+}
+
+.track-item:hover .delete-btn {
+    opacity: 1;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Затемнение фона */
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    position: relative; /* Позиционируем содержимое модального окна */
+    z-index: 1001; /* Поднимаем содержимое модального окна над затемненным фоном */
+}
+
+.modal-buttons {
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    margin: 0 10px;
+    padding: 5px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-buttons button.confirm {
+    background: #ff4d4d;
+    color: white;
+}
+
+.modal-buttons button.cancel {
+    background: #888;
+    color: white;
+}
+
+/* Toast-уведомления */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff4d4d;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: none;
+    z-index: 1000;
+}
+
+.toast.show {
+    display: block;
+    animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0;
+    }
+    10%, 90% {
+        opacity: 1;
+    }
+}
+
+/* Контейнер, чтобы звезда привязывалась к изображению */
+.playlist-cover-container {
+    position: relative;
+    display: inline-block;
+}
