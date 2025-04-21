@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 import tempfile
 import urllib.request
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, get_flashed_messages
 import requests
 from services.deezer_service import search_tracks, search_albums, get_popular_tracks, get_popular_albums, get_all_genres
 from user_auth.auth import db, login_manager, register_user, login_user_by_credentials, logout_current_user, User, \
