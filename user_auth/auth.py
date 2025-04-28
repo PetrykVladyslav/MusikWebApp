@@ -1,14 +1,17 @@
 # Імпорт всіх необхідних бібліотек.
 from datetime import datetime
+
+from flask_login import LoginManager, UserMixin, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, LoginManager, login_user, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
+
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Ініціалізація SQLAlchemy
 db = SQLAlchemy()
 
 # Ініціалізація Flask-Login
 login_manager = LoginManager()
+
 
 # Модель користувача
 class User(UserMixin, db.Model):
@@ -27,6 +30,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 # Модель плейліста
 class Playlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,6 +42,7 @@ class Playlist(db.Model):
     def get_favorite_playlist(user_id):
         return Playlist.query.filter_by(user_id=user_id, is_favorite=True).first()
 
+
 # Модель треку
 class Track(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,13 +53,16 @@ class Track(db.Model):
     preview_url = db.Column(db.String(200))
     playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
 
+
 def get_user_playlists(user_id):
     return Playlist.query.filter_by(user_id=user_id).all()
+
 
 # Завантажувач користувача для Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 # Функція для реєстрації користувача
 def register_user(email, password, username):
@@ -81,6 +89,7 @@ def register_user(email, password, username):
         db.session.rollback()
         return False, f"Помилка реєстрації: {str(e)}"
 
+
 # Функція для входу користувача
 def login_user_by_credentials(email, password):
     user = User.query.filter_by(email=email).first()
@@ -93,6 +102,7 @@ def login_user_by_credentials(email, password):
 
     return False, " Неправильний email або пароль!"
 
+
 # Функція для виходу користувача
 def logout_current_user(user):
     if user.is_authenticated:
@@ -103,9 +113,10 @@ def logout_current_user(user):
     logout_user()
     return "Ви вийшли з системи."
 
+
 # Функція для оновлення часу активності користувача.
 def update_user_activity(user):
-    """ Обновляет время активности пользователя """
+    """Обновляет время активности пользователя"""
     if user.is_authenticated:
         now = datetime.utcnow()
         if user.last_active:

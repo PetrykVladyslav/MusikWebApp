@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 750
+target-version = ['py312']
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+line_length = 750
+known_flask = ["flask", "flask_sqlalchemy", "flask_login"]
+known_werkzeug = ["werkzeug"]
+known_requests = ["requests"]
+known_services = ["services"]
+known_userauth = ["user_auth"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FLASK", "WERKZEUG", "REQUESTS", "SERVICES", "USERAUTH", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+combine_as_imports = true
+force_grid_wrap = 0
+include_trailing_comma = true
+multi_line_output = 3

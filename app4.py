@@ -1,17 +1,21 @@
 # Імпорт всіх необхідних бібліотек.
 import os
-from datetime import timedelta
 import tempfile
 import urllib.request
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, get_flashed_messages
-import requests
-from services.deezer_service import search_tracks, search_albums, get_popular_tracks, get_popular_albums, get_all_genres
-from user_auth.auth import db, login_manager, register_user, login_user_by_credentials, logout_current_user, User, \
-    get_user_playlists, Playlist, Track, update_user_activity
+from datetime import timedelta
+
+from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, send_file, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
+
 from werkzeug.utils import secure_filename
 
-#Ініціалізація додатку.
+import requests
+
+from services.deezer_service import get_all_genres, get_popular_albums, get_popular_tracks, search_albums, search_tracks
+
+from user_auth.auth import Playlist, Track, User, db, get_user_playlists, login_manager, login_user_by_credentials, logout_current_user, register_user, update_user_activity
+
+# Ініціалізація додатку.
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
@@ -37,6 +41,7 @@ with app.app_context():
     if not os.path.exists("music.db"):  # Проверяем, существует ли уже база
         db.create_all()
 
+
 # Головна сторінка з полем пошуку
 @app.route("/home", methods=["GET", "POST"])
 @app.route("/", methods=["GET", "POST"])
@@ -51,8 +56,8 @@ def home():
     genres = get_all_genres()  # Отримуємо всі жанри
     user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
 
-    return render_template("index.html", popular_tracks=popular_tracks, popular_albums=popular_albums,
-                           playlists=user_playlists, genres=genres, user=current_user)
+    return render_template("index.html", popular_tracks=popular_tracks, popular_albums=popular_albums, playlists=user_playlists, genres=genres, user=current_user)
+
 
 # Сторінка з інформацією про додаток
 @app.route("/about")
@@ -60,6 +65,7 @@ def about():
     """Сторінка 'Про нас'"""
     genres = get_all_genres()  # Отримуємо всі жанри
     return render_template("about.html", genres=genres, user=current_user)
+
 
 # Сторінка з результатами пошуку
 @app.route("/search")
@@ -80,8 +86,8 @@ def search():
 
     genres = get_all_genres()  # Отримуємо всі жанри
     user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
-    return render_template("search_results.html", query=query, results=results,
-                           playlists=user_playlists, genres=genres, user=current_user)
+    return render_template("search_results.html", query=query, results=results, playlists=user_playlists, genres=genres, user=current_user)
+
 
 # Створення нового плейліста
 @app.route('/create_playlist', methods=['POST'])
@@ -97,6 +103,7 @@ def create_playlist():
     else:
         flash("Назва плейліста не може бути порожньою!", category='error_playlist')
     return redirect(request.referrer)
+
 
 # Маршрут для оновлення назви плейліста
 @app.route('/update_playlist_name', methods=['POST'])
@@ -120,6 +127,7 @@ def update_playlist_name():
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 # Маршрут для видалення плейліста
 @app.route('/delete_playlist', methods=['POST'])
@@ -145,6 +153,7 @@ def delete_playlist():
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 # Додавання треку до плейліста.
 @app.route("/add_to_playlist", methods=["POST"])
@@ -179,19 +188,13 @@ def add_to_playlist():
         return redirect(request.referrer)
 
     # Добавляем новый трек в плейлист
-    new_track = Track(
-        title=track_title,
-        artist=track_artist,
-        image=track_image,
-        preview_url=f"https://api.deezer.com/track/{deezer_id}/preview",
-        playlist_id=playlist.id,
-        deezer_id=deezer_id
-    )
+    new_track = Track(title=track_title, artist=track_artist, image=track_image, preview_url=f"https://api.deezer.com/track/{deezer_id}/preview", playlist_id=playlist.id, deezer_id=deezer_id)
     db.session.add(new_track)
     db.session.commit()
 
     flash("Трек успішно додано до плейліста!", "success")
     return redirect(request.referrer)
+
 
 # Видалення треку з плейліста.
 @app.route("/delete_track", methods=["POST"])
@@ -216,6 +219,7 @@ def delete_track():
     db.session.commit()
     return jsonify({"success": True})
 
+
 # Сторінка для відображення плейлістів.
 @app.route("/playlist/<int:playlist_id>")
 @login_required  # Только авторизованные пользователи могут просматривать плейлисты
@@ -228,6 +232,7 @@ def playlist_detail(playlist_id):
     else:
         flash("Плейліст не знайдено!", "error")
         return redirect(url_for("home"))
+
 
 # Сторінка для відображення альбомів.
 @app.route("/album/<int:album_id>")
@@ -247,21 +252,9 @@ def album_detail(album_id):
         # Получаем треки альбома из основного ответа (без отдельного запроса)
         tracks = []
         for item in album_data.get("tracks", {}).get("data", []):
-            tracks.append({
-                "title": item["title"],
-                "artist": item["artist"]["name"],
-                "image": album_data["cover_big"],
-                "id": item["id"],
-                "preview_url": item.get("preview", "")
-            })
+            tracks.append({"title": item["title"], "artist": item["artist"]["name"], "image": album_data["cover_big"], "id": item["id"], "preview_url": item.get("preview", "")})
 
-        album = {
-            "title": album_data["title"],
-            "artist": album_data["artist"]["name"],
-            "image": album_data.get("cover_big", ""),
-            "tracks": tracks,
-            "tracks_count": album_data.get("nb_tracks", 0)
-        }
+        album = {"title": album_data["title"], "artist": album_data["artist"]["name"], "image": album_data.get("cover_big", ""), "tracks": tracks, "tracks_count": album_data.get("nb_tracks", 0)}
 
         user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
 
@@ -270,6 +263,7 @@ def album_detail(album_id):
         print(f"Помилка отримання альбому: {str(e)}")
         flash("Помилка отримання даних альбому", "error")
         return redirect(url_for("home"))
+
 
 # Функція для отримання 30-секундного превью-посилання трека
 @app.route("/get_preview/<track_id>")
@@ -282,6 +276,7 @@ def get_preview(track_id):
     preview_url = data.get("preview", "")  # Ссылка на 30-секундный фрагмент
     return {"preview_url": preview_url}
 
+
 # Функція для пошуку за жанрами.
 @app.route("/genre/<genre_name>")
 def search_by_genre(genre_name):
@@ -290,23 +285,22 @@ def search_by_genre(genre_name):
     try:
         # Пошук треків за жанром через Deezer API
         url = f"{DEEZER_API_URL}/search"
-        params = {
-            "q": f"genre:'{genre_name}'",
-            "limit": 1000
-        }
+        params = {"q": f"genre:'{genre_name}'", "limit": 1000}
         response = requests.get(url, params=params)
         data = response.json()
 
         tracks = []
         for item in data.get("data", []):
-            tracks.append({
-                "type": "track",  # Додаємо тип для ідентифікації
-                "title": item["title"],
-                "artist": item["artist"]["name"],
-                "image": item["album"]["cover_big"],
-                "id": item["id"],
-                "preview_url": item.get("preview", ""),
-            })
+            tracks.append(
+                {
+                    "type": "track",  # Додаємо тип для ідентифікації
+                    "title": item["title"],
+                    "artist": item["artist"]["name"],
+                    "image": item["album"]["cover_big"],
+                    "id": item["id"],
+                    "preview_url": item.get("preview", ""),
+                }
+            )
         # Пошук альбомів за жанром
         albums_url = f"{DEEZER_API_URL}/search/album"
         albums_response = requests.get(albums_url, params={"q": f"genre:'{genre_name}'", "limit": 1000})
@@ -314,13 +308,15 @@ def search_by_genre(genre_name):
 
         albums = []
         for item in albums_data.get("data", []):
-            albums.append({
-                "type": "album",
-                "title": item["title"],
-                "artist": item["artist"]["name"],
-                "image": item["cover_big"],
-                "id": item["id"],
-            })
+            albums.append(
+                {
+                    "type": "album",
+                    "title": item["title"],
+                    "artist": item["artist"]["name"],
+                    "image": item["cover_big"],
+                    "id": item["id"],
+                }
+            )
 
         user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
 
@@ -329,6 +325,7 @@ def search_by_genre(genre_name):
         print(f"Помилка пошуку за жанром: {str(e)}")
         flash("Помилка пошуку за жанром", "error")
         return redirect(url_for("home"))
+
 
 # Маршрут для реєстрації
 @app.route('/register', methods=['GET', 'POST'])
@@ -353,6 +350,7 @@ def register():
 
     return render_template('register.html')
 
+
 # Маршрут для входу
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -373,6 +371,7 @@ def login():
 
     return render_template('login.html')
 
+
 # Маршрут для виходу
 @app.route('/logout')
 @login_required
@@ -381,6 +380,7 @@ def logout():
     flash(message, category='success_logout')  # Категория для успешного выхода
     return redirect(url_for('home'))
 
+
 # Сторінка з профілем користувача.
 @app.route('/user_details')
 @login_required
@@ -388,6 +388,7 @@ def user_details():
     genres = get_all_genres()  # Отримуємо всі жанри
     user_playlists = get_user_playlists(current_user.id) if current_user.is_authenticated else []
     return render_template('user_details.html', user=current_user, playlists=user_playlists, genres=genres)
+
 
 # Функція для оновлення даних користувача.
 @app.route('/update_profile', methods=['POST'])
@@ -410,6 +411,7 @@ def update_profile():
 
     return redirect(url_for('user_details'))
 
+
 # Маршрут для удаления аккаунта
 @app.route('/delete_account', methods=['POST'])
 @login_required
@@ -424,6 +426,7 @@ def delete_account():
         return jsonify({"success": True})
     else:
         return jsonify({"success": False, "error": "Невірний пароль"}), 401
+
 
 # Маршрут для обновления ника
 @app.route('/update_username', methods=['POST'])
@@ -445,8 +448,10 @@ def update_username():
 
     return jsonify({"success": True})
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 # Функція для оновлення аватару.
 @app.route('/update_avatar', methods=['POST'])
@@ -472,10 +477,10 @@ def update_avatar():
         db.session.commit()
         db.session.refresh(current_user)  # Обновляем объект current_user без выхода
 
-        return jsonify(
-            {"success": True, "avatar": url_for('static', filename=current_user.avatar, _external=True)})
+        return jsonify({"success": True, "avatar": url_for('static', filename=current_user.avatar, _external=True)})
 
     return jsonify({"success": False, "error": "Неправильний формат файлу."})
+
 
 # Функція для оновлення паролю.
 @app.route('/update_password', methods=['POST'])
@@ -493,15 +498,14 @@ def update_password():
 
     return jsonify({"success": True})
 
+
 # Функція для збору і аналізу активності користувача.
 @app.route('/update_activity')
 @login_required
 def update_activity():
     update_user_activity(current_user)
-    return jsonify({
-        'total_time_online': current_user.total_time_online,
-        'last_active': current_user.last_active.strftime('%d.%m.%Y %H:%M:%S') if current_user.last_active else None
-    })
+    return jsonify({'total_time_online': current_user.total_time_online, 'last_active': current_user.last_active.strftime('%d.%m.%Y %H:%M:%S') if current_user.last_active else None})
+
 
 # Функція для отримання паролю користувача.
 @app.route('/get_user_password', methods=['POST'])
@@ -515,11 +519,13 @@ def get_user_password():
     else:
         return jsonify({"success": False}), 401
 
+
 # Функція для очищення повідомлень від сервера.
 @app.route('/clear_flash_messages', methods=['POST'])
 def clear_flash_messages():
     session.pop('_flashes', None)  # Очищаем все сообщения flash
     return '', 204  # Возвращаем пустой ответ с кодом 204 (No Content)
+
 
 # Маршрут для завантаження трека.
 @app.route('/download_track/<track_id>')
@@ -549,16 +555,12 @@ def download_track(track_id):
             filename = f"{artist} - {title}.mp3".replace("/", "-")
 
             # Відправляємо файл користувачу
-            return send_file(
-                tmp_file.name,
-                as_attachment=True,
-                download_name=filename,
-                mimetype='audio/mpeg'
-            )
+            return send_file(tmp_file.name, as_attachment=True, download_name=filename, mimetype='audio/mpeg')
 
     except Exception as e:
         flash(f"Помилка при завантаженні: {str(e)}", "error")
         return redirect(request.referrer)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
