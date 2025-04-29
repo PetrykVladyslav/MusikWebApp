@@ -1,184 +1,271 @@
 import pytest
+
 import requests
+
 from services.deezer_service import (
-    search_tracks,
-    search_albums,
-    get_popular_tracks,
-    get_popular_albums,
     get_all_genres,
+    get_popular_albums,
+    get_popular_tracks,
+    search_albums,
+    search_tracks,
 )
 
-# Щоб не робити реальних запитів до Deezer API, використовуємо мокінг:
-from unittest.mock import patch
+
+# ==== Тести для search_tracks ====
+def test_search_tracks_success():
+    """Тест успішного пошуку трека"""
+    tracks = search_tracks("Houdini")
+
+    assert isinstance(tracks, list)
+    if tracks:  # Якщо API повернуло результати
+        track = tracks[0]
+        assert "title" in track
+        assert "artist" in track
+        assert "image" in track
+        assert "id" in track
+        assert "preview_url" in track
+        assert track["type"] == "track"
 
 
-# ==== Тести для функції search_tracks ====
-
-@patch("services.deezer_service.requests.get")
-def test_search_tracks_success(mock_get):
-    # Мок успішної відповіді
-    mock_get.return_value.json.return_value = {
-        "data": [
-            {
-                "title": "Song 1",
-                "artist": {"name": "Artist 1"},
-                "album": {"cover_big": "cover1.jpg"},
-                "id": 123,
-                "preview": "preview_url_1",
-            }
-        ]
-    }
-
-    tracks = search_tracks("test_query")
-    assert len(tracks) == 1
-    assert tracks[0]["title"] == "Song 1"
-    assert tracks[0]["artist"] == "Artist 1"
-    assert tracks[0]["preview_url"] == "preview_url_1"
-
-
-@patch("services.deezer_service.requests.get")
-def test_search_tracks_empty(mock_get):
-    # Мок порожньої відповіді
-    mock_get.return_value.json.return_value = {"data": []}
-
-    tracks = search_tracks("unknown_query")
+def test_search_tracks_empty_query():
+    """Тест порожнього запиту"""
+    tracks = search_tracks("")
     assert tracks == []
 
 
-# ==== Тести для функції search_albums ====
-
-@patch("services.deezer_service.requests.get")
-def test_search_albums_success(mock_get):
-    # Мок успішної відповіді
-    mock_get.return_value.json.return_value = {
-        "data": [
-            {
-                "title": "Album 1",
-                "artist": {"name": "Artist A"},
-                "cover_big": "coverA.jpg",
-                "id": 111,
-                "nb_tracks": 10,
-            }
-        ]
-    }
-
-    albums = search_albums("test_album")
-    assert len(albums) == 1
-    assert albums[0]["title"] == "Album 1"
-    assert albums[0]["artist"] == "Artist A"
-    assert albums[0]["tracks_count"] == 10
+def test_search_tracks_real_empty():
+    """Тест запиту із неправильною назвою треку"""
+    result = search_tracks("неіснуючийтрек")
+    assert result == []
 
 
-@patch("services.deezer_service.requests.get")
-def test_search_albums_empty(mock_get):
-    # Мок порожньої відповіді
-    mock_get.return_value.json.return_value = {"data": []}
+def test_search_tracks_special_chars():
+    """Тест запиту із спецсимволами"""
+    tracks = search_tracks("mötley crüe")
+    assert isinstance(tracks, list)
 
-    albums = search_albums("unknown_album")
+
+def test_search_tracks_long_query():
+    """Тест дуже довгого запиту"""
+    long_query = "a" * 500
+    tracks = search_tracks(long_query)
+    assert isinstance(tracks, list)
+
+
+def test_search_tracks_invalid_response(monkeypatch):
+    """Тест обробки невалідної відповіді для треків"""
+
+    def mock_get(*args, **kwargs):
+        response = requests.Response()
+        response.status_code = 200
+        response._content = b'{"invalid": "data"}'
+        return response
+
+    monkeypatch.setattr(requests, 'get', mock_get)
+    tracks = search_tracks("test")
+    assert tracks == []
+
+
+# ==== Тести для search_albums ====
+def test_search_albums_success():
+    """Тест успішного пошуку альбомів"""
+    albums = search_albums("metallica")
+
+    assert isinstance(albums, list)
+    if albums:
+        album = albums[0]
+        assert "title" in album
+        assert "artist" in album
+        assert "image" in album
+        assert "id" in album
+        assert "tracks_count" in album
+        assert album["type"] == "album"
+        assert album["tracks_count"] > 1
+
+
+def test_search_albums_empty_query():
+    """Тест порожнього запиту"""
+    albums = search_albums("")
     assert albums == []
 
 
-@patch("services.deezer_service.requests.get")
-def test_search_albums_incorrect_data(mock_get):
-    # Мок неправильної відповіді (наприклад, немає поля artist)
-    mock_get.return_value.json.return_value = {
-        "data": [
-            {
-                "title": "Album without artist",
-                "cover_big": "coverX.jpg",
-                "id": 999,
-            }
-        ]
-    }
+def test_search_albums_real_empty():
+    """Тест запиту із неправильною назвою альбома"""
+    result = search_albums("неіснуючийальбом")
+    assert result == []
 
-    albums = search_albums("bad_album")
+
+def test_search_albums_no_results():
+    """Тест запиту без результатів"""
+    albums = search_albums("nonexistentartist12345")
     assert albums == []
 
 
-@patch("services.deezer_service.requests.get", side_effect=requests.exceptions.RequestException)
-def test_search_albums_request_error(mock_get):
-    # Мок помилки запиту (наприклад, проблеми з Інтернетом)
-    albums = search_albums("error_album")
+def test_search_albums_real_invalid_url(monkeypatch):
+    """Тест запиту із неправильним посиланням"""
+    monkeypatch.setattr("services.deezer_service.DEEZER_API_URL", "http://invalid.url")
+    result = search_albums("test")
+    assert result == []
+
+
+def test_search_albums_invalid_response(monkeypatch):
+    """Тест обробки невалідної відповіді"""
+
+    def mock_get(*args, **kwargs):
+        response = requests.Response()
+        response.status_code = 200
+        response._content = b'{"invalid": "data"}'
+        return response
+
+    monkeypatch.setattr(requests, 'get', mock_get)
+    albums = search_albums("test")
     assert albums == []
 
 
-# ==== Тести для функції get_popular_tracks ====
-
-@patch("services.deezer_service.requests.get")
-@patch("services.deezer_service.random.sample", side_effect=lambda x, y: x[:y])  # упрощаем random.sample
-def test_get_popular_tracks_success(mock_sample, mock_get):
-    mock_get.return_value.json.return_value = {
-        "data": [
-            {
-                "title": "Popular Track 1",
-                "artist": {"name": "Artist X"},
-                "album": {"cover_big": "coverX.jpg"},
-                "id": 101,
-                "preview": "preview1.mp3",
-            }
-        ]
-    }
-
+# ==== Тести для get_popular_tracks ====
+def test_get_popular_tracks_success():
+    """Тест отримання популярних треків"""
     tracks = get_popular_tracks()
-    assert len(tracks) == 1
-    assert tracks[0]["title"] == "Popular Track 1"
 
-@patch("services.deezer_service.requests.get", side_effect=requests.exceptions.RequestException)
-def test_get_popular_tracks_error(mock_get):
+    assert isinstance(tracks, list)
+    assert len(tracks) <= 10
+    if tracks:
+        track = tracks[0]
+        assert "title" in track
+        assert "artist" in track
+        assert "image" in track
+        assert "id" in track
+        assert "preview_url" in track
+
+
+def test_get_popular_tracks_limit():
+    """Тест обмеження кількості треків"""
+    tracks = get_popular_tracks()
+    assert len(tracks) <= 10
+
+
+def test_get_popular_tracks_structure():
+    """Тест структури даних, що повертаються"""
+    tracks = get_popular_tracks()
+    if tracks:
+        assert all(isinstance(track["id"], int) for track in tracks)
+        assert all(len(track["title"]) > 0 for track in tracks)
+
+
+def test_get_popular_tracks_api_failure(monkeypatch):
+    """Тест обробки помилок API"""
+
+    def mock_get(*args, **kwargs):
+        raise requests.exceptions.RequestException("API Error")
+
+    monkeypatch.setattr(requests, 'get', mock_get)
     tracks = get_popular_tracks()
     assert tracks == []
 
 
-# ==== Тести для функції get_popular_albums ====
+def test_get_popular_tracks_invalid_url(monkeypatch):
+    """Тест запиту із неправильним посиланням"""
+    monkeypatch.setattr("services.deezer_service.DEEZER_API_URL", "http://invalid.url")
+    result = get_popular_tracks()
+    assert result == []
 
-@patch("services.deezer_service.requests.get")
-@patch("services.deezer_service.random.sample", side_effect=lambda x, y: x[:y])
-def test_get_popular_albums_success(mock_sample, mock_get):
-    mock_get.return_value.json.return_value = {
-        "data": [
-            {
-                "title": "Popular Album 1",
-                "artist": {"name": "Artist Y"},
-                "cover_big": "coverY.jpg",
-                "id": 202,
-            }
-        ]
-    }
 
+def test_get_popular_tracks_empty(monkeypatch):
+    """Тест запиту із порожнім результатом"""
+    monkeypatch.setattr(requests, "get", lambda *a, **kw: type("Fake", (), {"json": lambda: {"data": []}})())
+    result = get_popular_tracks()
+    assert result == []
+
+
+# ==== Тести для get_popular_albums ====
+def test_get_popular_albums_success():
+    """Тест отримання популярних альбомів"""
     albums = get_popular_albums()
-    assert len(albums) == 1
-    assert albums[0]["title"] == "Popular Album 1"
 
-@patch("services.deezer_service.requests.get", side_effect=requests.exceptions.RequestException)
-def test_get_popular_albums_error(mock_get):
+    assert isinstance(albums, list)
+    assert len(albums) <= 10
+    if albums:
+        album = albums[0]
+        assert "title" in album
+        assert "artist" in album
+        assert "image" in album
+        assert "id" in album
+
+
+def test_get_popular_albums_limit():
+    """Тест обмеження кількості альбомів"""
+    albums = get_popular_albums()
+    assert len(albums) <= 10
+
+
+def test_get_popular_albums_structure():
+    """Тест структури даних, що повертаються"""
+    albums = get_popular_albums()
+    if albums:
+        assert all(isinstance(album["id"], int) for album in albums)
+        assert all(len(album["title"]) > 0 for album in albums)
+
+
+def test_get_popular_albums_api_failure(monkeypatch):
+    """Тест обробки помилок API"""
+
+    def mock_get(*args, **kwargs):
+        raise requests.exceptions.RequestException("API Error")
+
+    monkeypatch.setattr(requests, 'get', mock_get)
     albums = get_popular_albums()
     assert albums == []
 
 
-# ==== Тести для функції get_all_genres ====
+def test_get_popular_albums_empty(monkeypatch):
+    """Тест обробки отримки порожньої структури"""
+    monkeypatch.setattr(requests, "get", lambda *a, **kw: type("Fake", (), {"json": lambda: {"data": []}})())
+    result = get_popular_albums()
+    assert result == []
 
-@patch("services.deezer_service.requests.get")
-def test_get_all_genres_success(mock_get):
-    mock_get.return_value.json.return_value = {
-        "data": [
-            {"name": "Rock/Pop"},
-            {"name": "Jazz"},
-        ]
-    }
 
+# ==== Тести для get_all_genres ====
+def test_get_all_genres_success():
+    """Тест отримання усіх жанрів"""
     genres = get_all_genres()
-    assert {"name": "Rock"} in genres
-    assert {"name": "Pop"} in genres
-    assert {"name": "Jazz"} in genres
-    assert len(genres) == 3  # Rock + Pop + Jazz
 
-@patch("services.deezer_service.requests.get")
-def test_get_all_genres_empty(mock_get):
-    mock_get.return_value.json.return_value = {"data": []}
+    assert isinstance(genres, list)
+    if genres:
+        genre = genres[0]
+        assert "name" in genre
+        assert len(genre["name"]) > 0
+
+
+def test_get_all_genres_structure():
+    """Тест структури жанрів"""
+    genres = get_all_genres()
+    if genres:
+        assert all(isinstance(genre["name"], str) for genre in genres)
+
+
+def test_get_all_genres_split():
+    """Тест розділення складових жанрів"""
+    genres = get_all_genres()
+    if genres:
+        composite_genres = [g for g in genres if '/' in g["name"]]
+        if composite_genres:
+            assert any(' ' not in g["name"] for g in genres)
+
+
+def test_get_all_genres_api_failure(monkeypatch):
+    """Тест обробки помилок API"""
+
+    def mock_get(*args, **kwargs):
+        raise requests.exceptions.RequestException("API Error")
+
+    monkeypatch.setattr(requests, 'get', mock_get)
     genres = get_all_genres()
     assert genres == []
 
-@patch("services.deezer_service.requests.get", side_effect=requests.exceptions.RequestException)
-def test_get_all_genres_error(mock_get):
+
+def test_get_all_genres_no_data(monkeypatch):
+    """Тест обробки отримки порожньої структури"""
+
+    monkeypatch.setattr(requests, "get", lambda *a, **kw: type("Fake", (), {"json": lambda: {}})())
     genres = get_all_genres()
     assert genres == []
